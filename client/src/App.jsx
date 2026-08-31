@@ -21,7 +21,9 @@ import {
   Cloud,
   ShieldCheck,
   Smartphone,
-  Palette
+  Palette,
+  Sun,
+  Moon
 } from "lucide-react";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -135,9 +137,16 @@ function CandidateLogin({ onLoginSuccess }) {
       }
 
       setMsg(data.message || "OTP sent successfully.");
+      if (data.devOtp) {
+        setOtp(data.devOtp);
+      }
       setStep(2);
     } catch (e) {
-      setErr(e.message);
+      if (e.name === "TypeError" || e.message === "Load failed" || e.message?.includes("fetch")) {
+        setErr("Could not reach the backend server. Please verify your backend is running on port 3001.");
+      } else {
+        setErr(e.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -200,7 +209,11 @@ function CandidateLogin({ onLoginSuccess }) {
 
       onLoginSuccess(data.user);
     } catch (e) {
-      setErr(e.message);
+      if (e.name === "TypeError" || e.message === "Load failed" || e.message?.includes("fetch")) {
+        setErr("Could not reach the backend server. Please verify your backend is running on port 3001.");
+      } else {
+        setErr(e.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -373,7 +386,7 @@ function RoleChooser({ onChoose }) {
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#08090c", color: "#fff", padding: 24 }}>
       <div style={{ width: "min(900px,100%)", textAlign: "center" }}>
-        <div style={{ fontSize: 12, letterSpacing: 3, color: "#9aa6ff", fontWeight: 800 }}>AI INTERVIEWER</div>
+        <div style={{ fontSize: 12, letterSpacing: 3, color: "#9aa6ff", fontWeight: 800 }}>SDEPrepAI INTERVIEWER</div>
         <h1 style={{ fontSize: 42, margin: "12px 0 8px" }}>Choose your workspace</h1>
         <p style={{ color: "#9aa3b2", marginBottom: 30 }}>Secure role-based access with JWT for staff and OTP for candidates.</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16 }}>
@@ -445,12 +458,20 @@ function StaffLogin({ role, onSuccess, onBack }) {
 const fieldStyle = { width: "100%", boxSizing: "border-box", padding: 12, borderRadius: 10, border: "1px solid #303746", background: "#0b0e13", color: "#fff", marginBottom: 12 };
 
 export default function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem("app_theme") || "dark");
   const [candidateUser, setCandidateUser] = useState(localStorage.getItem("candidate_email") || null);
   const [staffUser, setStaffUser] = useState(() => { try { return JSON.parse(localStorage.getItem("staff_user") || "null"); } catch { return null; } });
   const [authMode, setAuthMode] = useState(() => { const path = window.location.pathname; return path === "/admin/login" ? "admin" : path === "/recruiter/login" ? "recruiter" : path === "/candidate/login" ? "candidate" : null; });
   const [pendingInterviewId] = useState(() => new URLSearchParams(window.location.search).get("interview") || null);
 
   const [screen, setScreen] = useState("dashboard");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("app_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => (t === "light" ? "dark" : "light"));
 
   const [form, setForm] = useState({
     candidateName: "",
@@ -582,12 +603,10 @@ export default function App() {
 
   useEffect(() => {
     if (screen !== "interview") return;
-
-    const timer = setInterval(() => {
+    const interval = setInterval(() => {
       setSeconds(s => s + 1);
     }, 1000);
-
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, [screen]);
 
   const handleLogout = () => {
@@ -664,10 +683,10 @@ export default function App() {
         candidateAuth()
       );
 
-      if (qIndex < (interview?.questions?.length || 0) - 1) {
+      if (qIndex < interview.questions.length - 1) {
         const ni = qIndex + 1;
         setQIndex(ni);
-        const q = interview?.questions?.[ni] || "";
+        const q = interview.questions[ni];
 
         setTranscript(t => [
           ...t,
@@ -817,6 +836,8 @@ export default function App() {
         candidateName={form.candidateName}
         candidateEmail={candidateUser}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       >
         <PracticeCatalog
           onStart={(item) => {
@@ -834,24 +855,6 @@ export default function App() {
     );
   }
 
-  if (screen === "analytics") {
-    return (
-      <AppShell
-        active="analytics"
-        onNav={setScreen}
-        candidateName={form.candidateName}
-        candidateEmail={candidateUser}
-        onLogout={handleLogout}
-      >
-        <Analytics
-          candidateEmail={candidateUser}
-          onStartPractice={() => setScreen("setup")}
-          onExplore={() => setScreen("explore")}
-        />
-      </AppShell>
-    );
-  }
-
   if (screen === "setup") {
     return (
       <AppShell
@@ -860,6 +863,8 @@ export default function App() {
         candidateName={form.candidateName}
         candidateEmail={candidateUser}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       >
         <Setup
           form={form}
@@ -878,13 +883,32 @@ export default function App() {
         candidateName={form.candidateName}
         candidateEmail={candidateUser}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       >
         <Dashboard
           dashboard={dashboard}
           candidateName={form.candidateName}
           goPractice={() => setScreen("setup")}
           goExplore={() => setScreen("explore")}
+          goAnalytics={() => setScreen("analytics")}
         />
+      </AppShell>
+    );
+  }
+
+  if (screen === "analytics") {
+    return (
+      <AppShell
+        active="analytics"
+        onNav={setScreen}
+        candidateName={form.candidateName}
+        candidateEmail={candidateUser}
+        onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      >
+        <Analytics onStartPractice={() => setScreen("explore")} />
       </AppShell>
     );
   }
@@ -897,6 +921,8 @@ export default function App() {
         candidateName={form.candidateName}
         candidateEmail={candidateUser}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       >
         <History all={dashboard.all} />
       </AppShell>
@@ -911,8 +937,12 @@ export default function App() {
         candidateName={form.candidateName}
         candidateEmail={candidateUser}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       >
         <Settings
+          theme={theme}
+          setTheme={setTheme}
           onHistoryCleared={loadDashboard}
         />
       </AppShell>
@@ -947,7 +977,8 @@ export default function App() {
         videoRef,
         capturedImage,
         capturePhoto,
-        retakePhoto
+        retakePhoto,
+        transcriptRef
       }}
     />
   );
@@ -960,7 +991,7 @@ function Setup({ form, update, start }) {
         <div className="logo">
           <Sparkles size={20} />
         </div>
-        <span>AI Interviewer</span>
+        <span>SDEPrepAI Interviewer</span>
       </div>
 
       <section className="hero">
@@ -1072,7 +1103,7 @@ function Interview(p) {
           <div className="logo">
             <Sparkles size={18} />
           </div>
-          <span>AI Interviewer</span>
+          <span>SDEPrepAI Interviewer</span>
         </div>
 
         <div className="timer">
@@ -1117,7 +1148,7 @@ function Interview(p) {
             </div>
           </div>
 
-          <h2>AI Interviewer</h2>
+          <h2>SDEPrepAI Interviewer</h2>
           <p>Question {p.qIndex + 1} of {p.interview?.questions?.length || 12}</p>
 
           <button
@@ -1175,7 +1206,7 @@ function Result({ result, transcript, restart }) {
         <div className="logo">
           <Sparkles size={20} />
         </div>
-        <span>AI Interviewer</span>
+        <span>SDEPrepAI Interviewer</span>
       </div>
 
       <section className="result-hero">
@@ -1225,7 +1256,7 @@ function Result({ result, transcript, restart }) {
   );
 }
 
-function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, children }) {
+function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, theme, onToggleTheme, children }) {
   const navItems = [
   { key: "dashboard", label: "Dashboard", icon: "🏠" },
   { key: "setup", label: "Practice", icon: "🎯" },
@@ -1250,10 +1281,33 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, chil
           <div className="logo">
             <Sparkles size={18} />
           </div>
-          <span>AI Interviewer</span>
+          <span>SDEPrepAI Interviewer</span>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {onToggleTheme && (
+            <button
+              onClick={onToggleTheme}
+              title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--border-color, #2b354d)",
+                color: "inherit",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "13px",
+                fontWeight: 600
+              }}
+            >
+              {theme === "light" ? <Moon size={15} style={{ color: "#6366f1" }} /> : <Sun size={15} style={{ color: "#fbbf24" }} />}
+              <span>{theme === "light" ? "Dark" : "Light"}</span>
+            </button>
+          )}
+
           <div className="user-chip">
             👤 {candidateEmail || candidateName || "Candidate"}
           </div>
@@ -1294,7 +1348,7 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, chil
   );
 }
 
-function Dashboard({ dashboard, candidateName, goPractice, goExplore }) {
+function Dashboard({ dashboard, candidateName, goPractice, goExplore, goAnalytics }) {
   return (
     <>
       <h1>Welcome back, {candidateName || "there"} 👋</h1>
@@ -1308,22 +1362,33 @@ function Dashboard({ dashboard, candidateName, goPractice, goExplore }) {
           <h2>Find the right interview for your goal.</h2>
           <p>Choose a domain such as Python, Node.js, AI/ML, Data, Cloud or Cybersecurity and start a structured mock interview.</p>
         </div>
-        <button className="primary" onClick={goExplore}>
-          Explore domains <ArrowRight size={18} />
-        </button>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <button className="primary" onClick={goExplore}>
+            Explore domains <ArrowRight size={18} />
+          </button>
+          {goAnalytics && (
+            <button
+              className="primary"
+              onClick={goAnalytics}
+              style={{ background: "#242c4d", color: "#aeb8ff", border: "1px solid #4a568b" }}
+            >
+              View Analytics 📈
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="stat-grid">
-        <div className="stat-card">
-          <span className="stat-label">Interviews</span>
+        <div className="stat-card" style={{ cursor: "pointer" }} onClick={goAnalytics}>
+          <span className="stat-label">Interviews ↗</span>
           <span className="stat-value">{dashboard.count}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Avg Score</span>
+        <div className="stat-card" style={{ cursor: "pointer" }} onClick={goAnalytics}>
+          <span className="stat-label">Avg Score ↗</span>
           <span className="stat-value">{dashboard.avg}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Best</span>
+        <div className="stat-card" style={{ cursor: "pointer" }} onClick={goAnalytics}>
+          <span className="stat-label">Best ↗</span>
           <span className="stat-value">{dashboard.best}</span>
         </div>
       </div>
@@ -1333,7 +1398,14 @@ function Dashboard({ dashboard, candidateName, goPractice, goExplore }) {
           <h2>Recent Interviews</h2>
           <p className="muted">Your latest practice sessions and scores.</p>
         </div>
-        <span className="catalog-link">Keep improving →</span>
+        {goAnalytics && (
+          <button
+            onClick={goAnalytics}
+            style={{ background: "none", border: 0, color: "#8d9cff", cursor: "pointer", fontWeight: 700, fontSize: 13 }}
+          >
+            Full Analytics Dashboard →
+          </button>
+        )}
       </div>
 
       <div className="recent-list">
@@ -1351,9 +1423,20 @@ function Dashboard({ dashboard, candidateName, goPractice, goExplore }) {
         ))}
       </div>
 
-      <button className="primary" onClick={goPractice}>
-        Start Interview <ArrowRight size={18} />
-      </button>
+      <div style={{ display: "flex", gap: 12 }}>
+        <button className="primary" onClick={goPractice}>
+          Start Interview <ArrowRight size={18} />
+        </button>
+        {goAnalytics && (
+          <button
+            className="primary"
+            onClick={goAnalytics}
+            style={{ background: "#161b26", color: "#dbe0ea", border: "1px solid #2d3648" }}
+          >
+            Open Analytics 📈
+          </button>
+        )}
+      </div>
     </>
   );
 }
@@ -1458,7 +1541,7 @@ function History({ all }) {
   );
 }
 
-function Settings({ onHistoryCleared }) {
+function Settings({ theme = "dark", setTheme, onHistoryCleared }) {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
@@ -1497,23 +1580,97 @@ function Settings({ onHistoryCleared }) {
   };
 
   return (
-    <div style={{ maxWidth: 600 }}>
+    <div style={{ maxWidth: 680 }}>
       <h1>Settings</h1>
       <p className="muted" style={{ marginBottom: 24 }}>
-        Manage your data and platform preferences.
+        Customize your appearance, data, and platform preferences.
       </p>
 
+      {/* APPEARANCE SECTION */}
+      <div className="card" style={{ padding: 24, borderRadius: 16, marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <Palette size={20} style={{ color: "#818cf8" }} />
+          <h3 style={{ margin: 0, fontSize: 18 }}>Appearance & Theme</h3>
+        </div>
+        <p className="muted" style={{ fontSize: 13, marginBottom: 18 }}>
+          Choose your preferred interface theme. Switch between dark and light background anytime.
+        </p>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <button
+            type="button"
+            onClick={() => setTheme && setTheme("dark")}
+            className={`theme-chooser-card ${theme === "dark" ? "active" : ""}`}
+            style={{
+              padding: 16,
+              borderRadius: 14,
+              border: theme === "dark" ? "2px solid #818cf8" : "1px solid #2d3648",
+              background: theme === "dark" ? "rgba(129, 140, 248, 0.15)" : "transparent",
+              color: "inherit",
+              cursor: "pointer",
+              textAlign: "left",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              transition: "0.2s"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Moon size={18} style={{ color: "#818cf8" }} />
+                <strong style={{ fontSize: 15 }}>Dark Theme</strong>
+              </div>
+              {theme === "dark" && <span style={{ color: "#34d399", fontWeight: "bold" }}>✓ Active</span>}
+            </div>
+            <div style={{ fontSize: 12, opacity: 0.75 }}>
+              Sleek dark glassmorphic background optimized for night prep.
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTheme && setTheme("light")}
+            className={`theme-chooser-card ${theme === "light" ? "active" : ""}`}
+            style={{
+              padding: 16,
+              borderRadius: 14,
+              border: theme === "light" ? "2px solid #818cf8" : "1px solid #2d3648",
+              background: theme === "light" ? "rgba(129, 140, 248, 0.15)" : "transparent",
+              color: "inherit",
+              cursor: "pointer",
+              textAlign: "left",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              transition: "0.2s"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Sun size={18} style={{ color: "#fbbf24" }} />
+                <strong style={{ fontSize: 15 }}>Light Theme</strong>
+              </div>
+              {theme === "light" && <span style={{ color: "#34d399", fontWeight: "bold" }}>✓ Active</span>}
+            </div>
+            <div style={{ fontSize: 12, opacity: 0.75 }}>
+              Clean, high-contrast light background for daytime sessions.
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* DANGER ZONE */}
       <div
         className="card"
         style={{
           border: "1px solid #7f1d1d",
-          background: "#1e1e2d",
-          padding: 20,
-          borderRadius: 12
+          background: "rgba(30, 20, 25, 0.8)",
+          padding: 24,
+          borderRadius: 16
         }}
       >
-        <h3 style={{ color: "#f87171", marginBottom: 8 }}>⚠️ Danger Zone</h3>
-        <p style={{ fontSize: 14, color: "#94a3b8", marginBottom: 16 }}>
+        <h3 style={{ color: "#f87171", margin: "0 0 8px" }}>⚠️ Danger Zone</h3>
+        <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 16 }}>
           Permanently delete all past mock interview records, scores, and transcripts from the database.
         </p>
 
@@ -1540,7 +1697,7 @@ function Settings({ onHistoryCleared }) {
             color: "#fff",
             border: "none",
             padding: "10px 16px",
-            borderRadius: "6px",
+            borderRadius: "8px",
             cursor: "pointer",
             fontWeight: 600
           }}

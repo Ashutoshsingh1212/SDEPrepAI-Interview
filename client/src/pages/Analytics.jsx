@@ -1,108 +1,62 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  TrendingUp,
-  TrendingDown,
-  Award,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Brain,
-  Sparkles,
-  BarChart3,
-  Target,
-  Flame,
-  ArrowUpRight,
-  RotateCcw,
-  BookOpen,
-  ChevronRight,
-  ShieldCheck,
-  Zap,
-  Activity,
-  Layers
-} from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
-  BarChart,
-  Bar,
   Cell
 } from "recharts";
-import { API_BASE_URL } from "../config";
+import {
+  Sparkles,
+  TrendingUp,
+  Award,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  RefreshCw,
+  Zap,
+  Target,
+  BarChart3,
+  BookOpen,
+  Calendar,
+  Layers,
+  ChevronRight
+} from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL || API_BASE_URL || "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
+const candidateAuth = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem("candidate_token") || ""}` }
+});
 
-function CustomTrendTooltip({ active, payload, label }) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="analytics-tooltip">
-        <div className="tooltip-header">
-          <strong>{data.role || "Interview"}</strong>
-          <span className="tooltip-tag">{data.difficulty || "Medium"}</span>
-        </div>
-        <div className="tooltip-score">
-          Score: <span>{data.score}/100</span>
-        </div>
-        <div className="tooltip-date">{data.date}</div>
-      </div>
-    );
-  }
-  return null;
-}
+const DISTRIBUTION_COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981"];
 
-function CustomDistTooltip({ active, payload }) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="analytics-tooltip">
-        <div className="tooltip-header">
-          <strong>{data.range}</strong>
-        </div>
-        <div className="tooltip-count">
-          Interviews: <span>{data.count}</span>
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
-export default function Analytics({ candidateEmail, onStartPractice, onExplore }) {
+export default function Analytics({ onStartPractice }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
 
   const fetchAnalytics = async () => {
+    setLoading(true);
+    setError("");
     try {
-      setError(null);
-      const token = localStorage.getItem("candidate_token");
-      const res = await axios.get(`${API}/api/v1/analytics`, {
-        headers: {
-          Authorization: `Bearer ${token || ""}`,
-        },
-      });
-      if (res.data?.success) {
-        setData(res.data);
-      } else {
-        setError(res.data?.error || "Failed to load analytics data");
-      }
+      const res = await axios.get(`${API}/api/v1/analytics`, candidateAuth());
+      setData(res.data);
     } catch (err) {
-      console.error("Fetch analytics error:", err);
-      const msg =
+      console.error("Failed to load candidate analytics:", err);
+      setError(
         err.response?.data?.error ||
-        err.message ||
-        "Could not load analytics. Please ensure you are logged in.";
-      setError(msg);
+        "Could not load analytics. Please ensure you are logged in."
+      );
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -110,623 +64,681 @@ export default function Analytics({ candidateEmail, onStartPractice, onExplore }
     fetchAnalytics();
   }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchAnalytics();
+  const formatMinutes = (mins) => {
+    if (!mins || mins <= 0) return "0 min";
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    if (hours === 0) return `${remainder} mins`;
+    if (remainder === 0) return `${hours} hrs`;
+    return `${hours}h ${remainder}m`;
   };
 
-  const metrics = data?.metrics || {
-    totalAttempted: 0,
-    completedCount: 0,
-    totalMinutesSpent: 0,
-    averageScore: 0,
-    highestScore: 0,
-    latestScore: null,
-    scoreImprovement: 0,
+  const getScoreBadge = (score) => {
+    if (score == null) return { label: "N/A", bg: "#1f293d", text: "#94a3b8" };
+    if (score >= 85) return { label: "Exceptional", bg: "rgba(16, 185, 129, 0.15)", text: "#34d399", border: "rgba(16, 185, 129, 0.3)" };
+    if (score >= 70) return { label: "Proficient", bg: "rgba(59, 130, 246, 0.15)", text: "#60a5fa", border: "rgba(59, 130, 246, 0.3)" };
+    if (score >= 50) return { label: "Developing", bg: "rgba(245, 158, 11, 0.15)", text: "#fbbf24", border: "rgba(245, 158, 11, 0.3)" };
+    return { label: "Needs Prep", bg: "rgba(239, 68, 68, 0.15)", text: "#f87171", border: "rgba(239, 68, 68, 0.3)" };
   };
-
-  const scoreTrend = data?.scoreTrend || [];
-  const scoreDistribution = data?.scoreDistribution || [];
-  const rolePerformance = data?.rolePerformance || [];
-  const topStrengths = data?.topStrengths || [];
-  const repeatedWeaknesses = data?.repeatedWeaknesses || [];
-  const improvementRecommendations = data?.improvementRecommendations || [];
-  const recentHistory = data?.recentHistory || [];
-  const smartSummary = data?.smartSummary || "";
-
-  // Readiness Tier
-  const readinessTier = useMemo(() => {
-    if (metrics.completedCount === 0) return { label: "New Candidate", color: "#8d96a8", bg: "#171b24" };
-    if (metrics.averageScore >= 85) return { label: "Senior SDE Ready", color: "#4ade80", bg: "#062e1c" };
-    if (metrics.averageScore >= 70) return { label: "Interview Proficient", color: "#60a5fa", bg: "#0e2a47" };
-    if (metrics.averageScore >= 50) return { label: "Intermediate Growth", color: "#facc15", bg: "#382d06" };
-    return { label: "Foundations Focus", color: "#f87171", bg: "#3c1115" };
-  }, [metrics]);
-
-  const distColors = ["#4ade80", "#60a5fa", "#facc15", "#f87171"];
 
   if (loading) {
     return (
-      <div className="analytics-loading-container">
-        <div className="analytics-spinner" />
-        <h3>Loading Candidate Intelligence...</h3>
-        <p className="muted">Aggregating interview logs, scores, and AI evaluations</p>
+      <div className="analytics-page">
+        <div className="analytics-loading-state">
+          <div className="loading-spinner"></div>
+          <h2>Analysing your interview data...</h2>
+          <p className="muted">Aggregating scores, AI evaluation highlights, and skill trends.</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="analytics-error-container">
-        <AlertCircle size={42} className="analytics-error-icon" />
-        <h2>Unable to Load Analytics</h2>
-        <p className="muted">{error}</p>
-        <button className="primary-btn" onClick={fetchAnalytics}>
-          <RotateCcw size={16} /> Try Again
-        </button>
+      <div className="analytics-page">
+        <div className="analytics-error-banner">
+          <AlertCircle size={24} />
+          <div>
+            <h3>Error Loading Analytics</h3>
+            <p>{error}</p>
+          </div>
+          <button className="secondary-btn" onClick={fetchAnalytics}>
+            <RefreshCw size={16} /> Retry
+          </button>
+        </div>
       </div>
     );
   }
 
+  const {
+    summary = {},
+    scoreTrend = [],
+    scoreDistribution = [],
+    rolePerformance = [],
+    topStrengths = [],
+    repeatedWeaknesses = [],
+    recommendations = [],
+    recentHistory = []
+  } = data || {};
+
+  const hasInterviews = summary.totalInterviews > 0;
+  const hasCompleted = summary.completedInterviews > 0;
+
   return (
     <div className="analytics-page">
-      {/* HEADER */}
-      <div className="analytics-header">
+      {/* HEADER SECTION */}
+      <header className="analytics-header">
         <div>
-          <div className="analytics-tag">
-            <Activity size={14} /> CANDIDATE PERFORMANCE ENGINE
+          <div className="analytics-eyebrow">
+            <Sparkles size={13} />
+            <span>CANDIDATE INTELLIGENCE & PERFORMANCE ANALYTICS</span>
           </div>
           <h1>Candidate Analytics Dashboard</h1>
           <p className="muted">
-            Real-time intelligence based on your verified mock interviews and AI evaluator feedback.
+            Personalised performance insights, score progression, and AI feedback breakdown from real interviews.
           </p>
         </div>
 
         <div className="analytics-header-actions">
-          <div
-            className="readiness-pill"
-            style={{ color: readinessTier.color, backgroundColor: readinessTier.bg }}
-          >
-            <ShieldCheck size={16} />
-            <span>{readinessTier.label}</span>
-          </div>
-
-          <button
-            className="secondary-btn icon-btn-refresh"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            title="Refresh Analytics"
-          >
-            <RotateCcw size={16} className={refreshing ? "spin-icon" : ""} />
-            <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
+          <button className="secondary-btn refresh-btn" onClick={fetchAnalytics} title="Refresh data">
+            <RefreshCw size={15} />
+            <span>Refresh</span>
           </button>
-        </div>
-      </div>
-
-      {/* SMART PERFORMANCE SUMMARY BANNER */}
-      <section className="analytics-smart-summary-card">
-        <div className="smart-summary-icon-wrap">
-          <Sparkles size={26} />
-        </div>
-        <div className="smart-summary-content">
-          <div className="smart-summary-title-row">
-            <span className="eyebrow">AI PERFORMANCE SUMMARY</span>
-            <span className="smart-summary-timestamp">
-              Live database sync • {metrics.completedCount} completed sessions
-            </span>
-          </div>
-          <h3>{smartSummary}</h3>
-        </div>
-      </section>
-
-      {/* 6 TOP KPI STAT CARDS */}
-      <div className="analytics-stats-grid">
-        {/* Card 1: Total Attempted */}
-        <div className="analytics-stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Total Attempted</span>
-            <div className="stat-card-icon" style={{ background: "#202849", color: "#8d9cff" }}>
-              <Layers size={18} />
-            </div>
-          </div>
-          <div className="stat-card-value">{metrics.totalAttempted}</div>
-          <div className="stat-card-subtext">
-            <span>{metrics.completedCount} finished</span>
-            <span className="bullet-sep">•</span>
-            <span>{metrics.totalAttempted - metrics.completedCount} in progress</span>
-          </div>
-        </div>
-
-        {/* Card 2: Completed Interviews */}
-        <div className="analytics-stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Completed Sessions</span>
-            <div className="stat-card-icon" style={{ background: "#062e1c", color: "#4ade80" }}>
-              <CheckCircle2 size={18} />
-            </div>
-          </div>
-          <div className="stat-card-value">{metrics.completedCount}</div>
-          <div className="stat-card-subtext">
-            <span>
-              {metrics.totalAttempted > 0
-                ? `${Math.round((metrics.completedCount / metrics.totalAttempted) * 100)}% completion rate`
-                : "No attempts yet"}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 3: Total Minutes Spent */}
-        <div className="analytics-stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Time in Interviews</span>
-            <div className="stat-card-icon" style={{ background: "#2d1f45", color: "#c084fc" }}>
-              <Clock size={18} />
-            </div>
-          </div>
-          <div className="stat-card-value">
-            {metrics.totalMinutesSpent} <span className="stat-card-unit">mins</span>
-          </div>
-          <div className="stat-card-subtext">
-            <span>
-              {metrics.totalMinutesSpent >= 60
-                ? `${(metrics.totalMinutesSpent / 60).toFixed(1)} hours of live practice`
-                : "Live technical speaking time"}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 4: Average Score */}
-        <div className="analytics-stat-card highlight-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Average Score</span>
-            <div className="stat-card-icon" style={{ background: "#1e3a8a", color: "#60a5fa" }}>
-              <Target size={18} />
-            </div>
-          </div>
-          <div className="stat-card-value">
-            {metrics.averageScore}
-            <span className="stat-card-max">/100</span>
-          </div>
-          <div className="stat-card-subtext">
-            <span>Across all completed tracks</span>
-          </div>
-        </div>
-
-        {/* Card 5: Highest & Latest Score */}
-        <div className="analytics-stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Best & Latest</span>
-            <div className="stat-card-icon" style={{ background: "#382d06", color: "#facc15" }}>
-              <Award size={18} />
-            </div>
-          </div>
-          <div className="stat-card-value">
-            {metrics.highestScore}
-            <span className="stat-card-max">/100</span>
-          </div>
-          <div className="stat-card-subtext">
-            <span>Latest session: {metrics.latestScore != null ? `${metrics.latestScore}/100` : "N/A"}</span>
-          </div>
-        </div>
-
-        {/* Card 6: Score Improvement Trend */}
-        <div className="analytics-stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Score Improvement</span>
-            <div
-              className="stat-card-icon"
-              style={{
-                background: metrics.scoreImprovement >= 0 ? "#062e1c" : "#3c1115",
-                color: metrics.scoreImprovement >= 0 ? "#4ade80" : "#f87171",
-              }}
-            >
-              {metrics.scoreImprovement >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-            </div>
-          </div>
-          <div
-            className="stat-card-value"
-            style={{
-              color: metrics.scoreImprovement > 0 ? "#4ade80" : metrics.scoreImprovement < 0 ? "#f87171" : "#f4f5f7",
-            }}
-          >
-            {metrics.scoreImprovement > 0
-              ? `+${metrics.scoreImprovement}`
-              : metrics.scoreImprovement}
-            <span className="stat-card-unit"> pts</span>
-          </div>
-          <div className="stat-card-subtext">
-            <span>
-              {metrics.completedCount >= 2
-                ? "First vs latest completed interview"
-                : "Complete ≥2 sessions for trend"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* CHARTS SECTION */}
-      <div className="analytics-charts-grid">
-        {/* Score Progression Trend Chart */}
-        <div className="analytics-card chart-card">
-          <div className="card-header">
-            <div>
-              <h2>Score Trend Graph</h2>
-              <p className="muted">Chronological progression across your practice sessions</p>
-            </div>
-            <span className="chart-badge">
-              <Activity size={14} /> Chronological Timeline
-            </span>
-          </div>
-
-          {scoreTrend.length === 0 ? (
-            <div className="analytics-empty-chart">
-              <BarChart3 size={36} className="empty-icon" />
-              <h4>No score progression yet</h4>
-              <p className="muted">Complete an interview session to generate your score curve.</p>
-              {onStartPractice && (
-                <button className="secondary-btn" onClick={onStartPractice} style={{ marginTop: 12 }}>
-                  Start Practice Interview
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="chart-container" style={{ width: "100%", height: 260 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={scoreTrend} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#7788ff" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#7788ff" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#242936" vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#66708a"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={{ stroke: "#242936" }}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    stroke="#66708a"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={{ stroke: "#242936" }}
-                    ticks={[0, 25, 50, 75, 100]}
-                  />
-                  <Tooltip content={<CustomTrendTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#8d9cff"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#scoreGradient)"
-                    activeDot={{ r: 6, fill: "#fff", stroke: "#7788ff", strokeWidth: 3 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-
-        {/* Score Distribution Chart */}
-        <div className="analytics-card chart-card">
-          <div className="card-header">
-            <div>
-              <h2>Score Distribution</h2>
-              <p className="muted">Performance frequency across standard skill tiers</p>
-            </div>
-            <span className="chart-badge">
-              <Zap size={14} /> Proficiency Bands
-            </span>
-          </div>
-
-          {metrics.completedCount === 0 ? (
-            <div className="analytics-empty-chart">
-              <BarChart3 size={36} className="empty-icon" />
-              <h4>No distribution data</h4>
-              <p className="muted">Complete interviews to see how your scores cluster across performance tiers.</p>
-            </div>
-          ) : (
-            <div className="chart-container" style={{ width: "100%", height: 260 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={scoreDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#242936" vertical={false} />
-                  <XAxis
-                    dataKey="range"
-                    stroke="#66708a"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={{ stroke: "#242936" }}
-                  />
-                  <YAxis
-                    allowDecimals={false}
-                    stroke="#66708a"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={{ stroke: "#242936" }}
-                  />
-                  <Tooltip content={<CustomDistTooltip />} />
-                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                    {scoreDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={distColors[index % distColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ROLE-WISE PERFORMANCE & RECENT INTELLIGENCE */}
-      <div className="analytics-dual-grid">
-        {/* Role-Wise Breakdown */}
-        <div className="analytics-card">
-          <div className="card-header">
-            <div>
-              <h2>Role-Wise Performance</h2>
-              <p className="muted">Your competency scores categorized by target job role</p>
-            </div>
-          </div>
-
-          {rolePerformance.length === 0 ? (
-            <div className="analytics-empty-state-inner">
-              <BookOpen size={30} className="muted" />
-              <p className="muted">No role performance logged yet.</p>
-            </div>
-          ) : (
-            <div className="role-performance-list">
-              {rolePerformance.map((item) => (
-                <div className="role-performance-item" key={item.role}>
-                  <div className="role-item-header">
-                    <div>
-                      <strong className="role-item-title">{item.role}</strong>
-                      <span className="role-item-meta">
-                        {item.completed} of {item.total} completed
-                      </span>
-                    </div>
-                    <div className="role-item-scores">
-                      <div className="role-score-badge">
-                        <span className="role-score-label">Avg</span>
-                        <strong className="role-score-val">{item.avgScore}/100</strong>
-                      </div>
-                      <div className="role-score-badge best">
-                        <span className="role-score-label">Best</span>
-                        <strong className="role-score-val">{item.bestScore}/100</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="role-progress-bar-bg">
-                    <div
-                      className="role-progress-bar-fill"
-                      style={{
-                        width: `${Math.min(100, item.avgScore)}%`,
-                        backgroundColor:
-                          item.avgScore >= 80 ? "#4ade80" : item.avgScore >= 60 ? "#60a5fa" : "#facc15",
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* AI Action Plan Recommendations */}
-        <div className="analytics-card">
-          <div className="card-header">
-            <div>
-              <h2>AI Recommendations</h2>
-              <p className="muted">Actionable suggestions generated by the evaluator</p>
-            </div>
-            <span className="chart-badge" style={{ background: "#252d50", color: "#aeb8ff" }}>
-              <Brain size={14} /> Action Plan
-            </span>
-          </div>
-
-          {improvementRecommendations.length === 0 ? (
-            <div className="analytics-empty-state-inner">
-              <Sparkles size={30} className="muted" />
-              <p className="muted">
-                Complete a practice interview to generate personalized AI improvement recommendations.
-              </p>
-            </div>
-          ) : (
-            <div className="recommendations-list">
-              {improvementRecommendations.map((rec, idx) => (
-                <div className="recommendation-item" key={idx}>
-                  <div className="recommendation-num">{idx + 1}</div>
-                  <div className="recommendation-text">
-                    <p>{rec.text}</p>
-                    {rec.count > 1 && (
-                      <span className="occurrence-badge">
-                        Noted in {rec.count} sessions
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* AI STRENGTHS & WEAKNESSES MATRIX */}
-      <div className="analytics-dual-grid">
-        {/* Top Strengths */}
-        <div className="analytics-card">
-          <div className="card-header">
-            <div>
-              <h2 className="text-success-header">
-                <CheckCircle2 size={20} className="text-success" /> Top Strengths
-              </h2>
-              <p className="muted">Key positive traits highlighted by the AI evaluation system</p>
-            </div>
-          </div>
-
-          {topStrengths.length === 0 ? (
-            <div className="analytics-empty-state-inner">
-              <p className="muted">No evaluated strengths recorded yet. Complete an interview to analyze.</p>
-            </div>
-          ) : (
-            <div className="feedback-chip-group">
-              {topStrengths.map((item, idx) => (
-                <div className="feedback-chip strength-chip" key={idx}>
-                  <div className="chip-content">
-                    <span className="chip-dot strength-dot" />
-                    <span className="chip-text">{item.text}</span>
-                  </div>
-                  {item.count > 1 && <span className="chip-count">×{item.count}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Repeated Weaknesses */}
-        <div className="analytics-card">
-          <div className="card-header">
-            <div>
-              <h2 className="text-warning-header">
-                <AlertCircle size={20} className="text-warning" /> Repeated Weaknesses & Gaps
-              </h2>
-              <p className="muted">Recurring friction points identified across your transcripts</p>
-            </div>
-          </div>
-
-          {repeatedWeaknesses.length === 0 ? (
-            <div className="analytics-empty-state-inner">
-              <p className="muted">No recurring weaknesses found. Keep up the high standard!</p>
-            </div>
-          ) : (
-            <div className="feedback-chip-group">
-              {repeatedWeaknesses.map((item, idx) => (
-                <div className="feedback-chip weakness-chip" key={idx}>
-                  <div className="chip-content">
-                    <span className="chip-dot weakness-dot" />
-                    <span className="chip-text">{item.text}</span>
-                  </div>
-                  {item.count > 1 && <span className="chip-count weakness-count">×{item.count}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* RECENT INTERVIEW HISTORY TABLE */}
-      <div className="analytics-card">
-        <div className="card-header">
-          <div>
-            <h2>Recent Interview History</h2>
-            <p className="muted">Detailed log of your latest practice sessions and AI scorecards</p>
-          </div>
           {onStartPractice && (
             <button className="primary-btn" onClick={onStartPractice}>
-              <Flame size={16} /> New Interview
+              <span>Practice New Role</span>
+              <ArrowRight size={16} />
             </button>
           )}
         </div>
+      </header>
 
-        {recentHistory.length === 0 ? (
-          <div className="analytics-empty-state-inner">
-            <BookOpen size={32} className="muted" />
-            <p className="muted">No interview history recorded for {candidateEmail || "your account"}.</p>
-            {onExplore && (
-              <button className="secondary-btn" onClick={onExplore} style={{ marginTop: 12 }}>
-                Explore Interview Tracks
-              </button>
-            )}
+      {/* EMPTY STATE */}
+      {!hasInterviews ? (
+        <div className="analytics-empty-card">
+          <div className="empty-icon-wrap">
+            <BarChart3 size={48} />
           </div>
-        ) : (
-          <div className="analytics-table-wrapper">
-            <table className="analytics-history-table">
-              <thead>
-                <tr>
-                  <th>Target Role</th>
-                  <th>Difficulty</th>
-                  <th>Date Attempted</th>
-                  <th>Duration</th>
-                  <th>Status</th>
-                  <th>AI Score</th>
-                  <th>Evaluator Summary</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentHistory.map((item) => {
-                  const hasScore = item.score !== null && item.score !== undefined;
-                  const scoreVal = Number(item.score) || 0;
-                  const dateStr = item.createdAt
-                    ? new Date(item.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    : "—";
+          <h2>No Interview Data Yet</h2>
+          <p>
+            You haven't completed any mock interviews yet. Start your first practice session to generate real-time AI performance metrics, score trends, and skill recommendations.
+          </p>
+          {onStartPractice && (
+            <button className="primary-btn empty-action" onClick={onStartPractice}>
+              Start First Practice Interview <ArrowRight size={16} />
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* KEY METRICS KPI GRID */}
+          <div className="analytics-kpi-grid">
+            {/* KPI 1: Total Attempted */}
+            <div className="kpi-card">
+              <div className="kpi-icon-row">
+                <span className="kpi-label">Total Attempted</span>
+                <div className="kpi-icon kpi-blue">
+                  <Layers size={18} />
+                </div>
+              </div>
+              <div className="kpi-value-row">
+                <strong className="kpi-number">{summary.totalInterviews}</strong>
+                <span className="kpi-subtext">Mock Sessions</span>
+              </div>
+              <div className="kpi-footer">
+                <span className="kpi-hint">
+                  {summary.inProgressInterviews > 0
+                    ? `${summary.inProgressInterviews} in progress`
+                    : "All tracked"}
+                </span>
+              </div>
+            </div>
 
+            {/* KPI 2: Completed Interviews */}
+            <div className="kpi-card">
+              <div className="kpi-icon-row">
+                <span className="kpi-label">Completed</span>
+                <div className="kpi-icon kpi-green">
+                  <CheckCircle2 size={18} />
+                </div>
+              </div>
+              <div className="kpi-value-row">
+                <strong className="kpi-number">{summary.completedInterviews}</strong>
+                <span className="kpi-subtext">Evaluated</span>
+              </div>
+              <div className="kpi-footer">
+                <div className="kpi-progress-bar">
+                  <div
+                    className="kpi-progress-fill"
+                    style={{
+                      width: `${summary.totalInterviews ? Math.round((summary.completedInterviews / summary.totalInterviews) * 100) : 0}%`
+                    }}
+                  />
+                </div>
+                <span className="kpi-hint">
+                  {summary.totalInterviews
+                    ? `${Math.round((summary.completedInterviews / summary.totalInterviews) * 100)}% completion rate`
+                    : "0%"}
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 3: Total Minutes Spent */}
+            <div className="kpi-card">
+              <div className="kpi-icon-row">
+                <span className="kpi-label">Time Invested</span>
+                <div className="kpi-icon kpi-purple">
+                  <Clock size={18} />
+                </div>
+              </div>
+              <div className="kpi-value-row">
+                <strong className="kpi-number">{formatMinutes(summary.totalMinutes)}</strong>
+              </div>
+              <div className="kpi-footer">
+                <span className="kpi-hint">Practice duration</span>
+              </div>
+            </div>
+
+            {/* KPI 4: Average Score */}
+            <div className="kpi-card">
+              <div className="kpi-icon-row">
+                <span className="kpi-label">Average Score</span>
+                <div className="kpi-icon kpi-indigo">
+                  <Target size={18} />
+                </div>
+              </div>
+              <div className="kpi-value-row">
+                <strong className="kpi-number">{summary.averageScore}</strong>
+                <span className="kpi-max">/100</span>
+              </div>
+              <div className="kpi-footer">
+                <span
+                  className="kpi-level-pill"
+                  style={{
+                    backgroundColor: getScoreBadge(summary.averageScore).bg,
+                    color: getScoreBadge(summary.averageScore).text,
+                    borderColor: getScoreBadge(summary.averageScore).border
+                  }}
+                >
+                  {summary.performanceLevel || "Getting Started"}
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 5: Highest & Latest Score */}
+            <div className="kpi-card">
+              <div className="kpi-icon-row">
+                <span className="kpi-label">Peak & Latest</span>
+                <div className="kpi-icon kpi-amber">
+                  <Award size={18} />
+                </div>
+              </div>
+              <div className="kpi-value-row">
+                <strong className="kpi-number">{summary.highestScore}</strong>
+                <span className="kpi-max">/100 best</span>
+              </div>
+              <div className="kpi-footer">
+                <span className="kpi-hint">
+                  Latest: {summary.latestScore != null ? `${summary.latestScore}/100` : "—"}
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 6: Improvement Trend */}
+            <div className="kpi-card">
+              <div className="kpi-icon-row">
+                <span className="kpi-label">Score Progression</span>
+                <div className="kpi-icon kpi-emerald">
+                  <TrendingUp size={18} />
+                </div>
+              </div>
+              <div className="kpi-value-row">
+                <strong
+                  className="kpi-number"
+                  style={{
+                    color:
+                      summary.improvementRate > 0
+                        ? "#34d399"
+                        : summary.improvementRate < 0
+                        ? "#f87171"
+                        : "#f4f5f7"
+                  }}
+                >
+                  {summary.improvementTrend || "0 pts"}
+                </strong>
+              </div>
+              <div className="kpi-footer">
+                <span className="kpi-hint">From first interview</span>
+              </div>
+            </div>
+          </div>
+
+          {/* SMART AI PERFORMANCE SUMMARY BANNER */}
+          <div className="smart-summary-card">
+            <div className="smart-summary-badge">
+              <Zap size={15} />
+              <span>AI Performance Intelligence</span>
+            </div>
+            <p className="smart-summary-text">{summary.smartSummary}</p>
+          </div>
+
+          {/* CHARTS ROW */}
+          <div className="analytics-charts-grid">
+            {/* Chart 1: Score Trend Timeline */}
+            <div className="chart-card">
+              <div className="chart-card-header">
+                <div>
+                  <h3>Score Trend Timeline</h3>
+                  <p className="muted">Progression across completed interview rounds</p>
+                </div>
+              </div>
+
+              {!hasCompleted || scoreTrend.length === 0 ? (
+                <div className="chart-empty-state">
+                  <p className="muted">Complete at least one interview to view your score trend graph.</p>
+                </div>
+              ) : (
+                <div className="chart-container">
+                  <ResponsiveContainer width="100%" height={260}>
+                    <AreaChart data={scoreTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#818cf8" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#818cf8" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e2433" vertical={false} />
+                      <XAxis
+                        dataKey="displayDate"
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: "#242c3d" }}
+                      />
+                      <YAxis
+                        domain={[0, 100]}
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: "#242c3d" }}
+                        ticks={[0, 25, 50, 75, 100]}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const p = payload[0].payload;
+                            return (
+                              <div className="chart-custom-tooltip">
+                                <div className="tooltip-title">{p.role}</div>
+                                <div className="tooltip-meta">
+                                  <span>{p.difficulty}</span> • <span>{p.displayDate}</span>
+                                </div>
+                                <div className="tooltip-score">
+                                  Score: <strong>{p.score}/100</strong>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#818cf8"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#scoreGradient)"
+                        dot={{ r: 4, fill: "#818cf8", stroke: "#0f172a", strokeWidth: 2 }}
+                        activeDot={{ r: 6, fill: "#fff", stroke: "#818cf8", strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            {/* Chart 2: Score Distribution Histogram */}
+            <div className="chart-card">
+              <div className="chart-card-header">
+                <div>
+                  <h3>Score Distribution</h3>
+                  <p className="muted">Performance bracket breakdown</p>
+                </div>
+              </div>
+
+              {!hasCompleted ? (
+                <div className="chart-empty-state">
+                  <p className="muted">No completed interviews to display score brackets.</p>
+                </div>
+              ) : (
+                <div className="chart-container">
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={scoreDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e2433" vertical={false} />
+                      <XAxis
+                        dataKey="range"
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: "#242c3d" }}
+                      />
+                      <YAxis
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: "#242c3d" }}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const p = payload[0].payload;
+                            return (
+                              <div className="chart-custom-tooltip">
+                                <div className="tooltip-title">{p.label}</div>
+                                <div className="tooltip-score">
+                                  Count: <strong>{p.count}</strong> ({p.percentage}%)
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={45}>
+                        {scoreDistribution.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={DISTRIBUTION_COLORS[index % DISTRIBUTION_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ROLE-WISE PERFORMANCE */}
+          {rolePerformance.length > 0 && (
+            <div className="analytics-section-card">
+              <div className="section-card-header">
+                <Target size={20} className="header-icon-indigo" />
+                <div>
+                  <h3>Role-Wise Performance Breakdown</h3>
+                  <p className="muted">Evaluation metrics grouped by technical domain</p>
+                </div>
+              </div>
+
+              <div className="role-performance-grid">
+                {rolePerformance.map((roleItem) => {
+                  const badge = getScoreBadge(roleItem.avgScore);
                   return (
-                    <tr key={item.id}>
-                      <td>
-                        <strong>{item.role}</strong>
-                      </td>
-                      <td>
-                        <span className="table-difficulty-badge">{item.difficulty}</span>
-                      </td>
-                      <td className="muted">{dateStr}</td>
-                      <td className="muted">{item.duration} mins</td>
-                      <td>
-                        <span
-                          className={`table-status-pill ${
-                            item.status === "Done"
-                              ? "status-done"
-                              : item.status === "Live"
-                              ? "status-live"
-                              : "status-pre"
-                          }`}
-                        >
-                          {item.status === "Done" ? "Completed" : item.status || "Pre"}
-                        </span>
-                      </td>
-                      <td>
-                        {hasScore ? (
-                          <div
-                            className={`table-score-badge ${
-                              scoreVal >= 80
-                                ? "score-high"
-                                : scoreVal >= 60
-                                ? "score-mid"
-                                : "score-low"
-                            }`}
-                          >
-                            <strong>{scoreVal}</strong>/100
-                          </div>
-                        ) : (
-                          <span className="muted">—</span>
-                        )}
-                      </td>
-                      <td className="table-summary-cell">
-                        {item.summary ? (
-                          <span title={item.summary}>
-                            {item.summary.length > 80
-                              ? item.summary.slice(0, 80) + "..."
-                              : item.summary}
+                    <div className="role-perf-card" key={roleItem.role}>
+                      <div className="role-perf-top">
+                        <div>
+                          <h4>{roleItem.role}</h4>
+                          <span className="role-perf-count">
+                            {roleItem.completed} completed / {roleItem.total} attempted
                           </span>
-                        ) : (
-                          <span className="muted">Evaluation pending or in-progress</span>
-                        )}
-                      </td>
-                    </tr>
+                        </div>
+                        <span
+                          className="role-badge"
+                          style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
+                        >
+                          {badge.label}
+                        </span>
+                      </div>
+
+                      <div className="role-perf-scores">
+                        <div className="role-score-item">
+                          <small>Avg Score</small>
+                          <strong>{roleItem.avgScore}/100</strong>
+                        </div>
+                        <div className="role-score-item">
+                          <small>Best Score</small>
+                          <strong>{roleItem.bestScore}/100</strong>
+                        </div>
+                        <div className="role-score-item">
+                          <small>Latest Score</small>
+                          <strong>{roleItem.latestScore ? `${roleItem.latestScore}/100` : "—"}</strong>
+                        </div>
+                      </div>
+
+                      <div className="role-progress-wrap">
+                        <div className="role-progress-track">
+                          <div
+                            className="role-progress-bar"
+                            style={{
+                              width: `${Math.max(roleItem.avgScore, 4)}%`,
+                              backgroundColor: badge.text
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            </div>
+          )}
+
+          {/* AI FEEDBACK INTELLIGENCE (STRENGTHS & WEAKNESSES) */}
+          <div className="feedback-intelligence-grid">
+            {/* Top Strengths */}
+            <div className="feedback-card strengths-card">
+              <div className="feedback-card-header">
+                <div className="feedback-icon-wrap strength-icon">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div>
+                  <h3>Top Strengths from AI Feedback</h3>
+                  <p className="muted">Key technical competencies validated in evaluations</p>
+                </div>
+              </div>
+
+              {topStrengths.length === 0 ? (
+                <p className="muted empty-feedback-text">
+                  Complete interview evaluations to identify your recurring strengths.
+                </p>
+              ) : (
+                <div className="feedback-item-list">
+                  {topStrengths.map((item, index) => (
+                    <div className="feedback-item strength-row" key={index}>
+                      <span className="feedback-bullet-check">✓</span>
+                      <div className="feedback-item-content">
+                        <p>{item.text}</p>
+                        {item.count > 1 && (
+                          <span className="occurrence-badge">Observed in {item.count} interviews</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Repeated Weaknesses */}
+            <div className="feedback-card weaknesses-card">
+              <div className="feedback-card-header">
+                <div className="feedback-icon-wrap weakness-icon">
+                  <AlertCircle size={20} />
+                </div>
+                <div>
+                  <h3>Repeated Focus Areas & Gaps</h3>
+                  <p className="muted">Areas where AI evaluations flagged recurring gaps</p>
+                </div>
+              </div>
+
+              {repeatedWeaknesses.length === 0 ? (
+                <p className="muted empty-feedback-text">
+                  No recurring weaknesses identified yet. Keep practicing to discover growth points.
+                </p>
+              ) : (
+                <div className="feedback-item-list">
+                  {repeatedWeaknesses.map((item, index) => (
+                    <div className="feedback-item weakness-row" key={index}>
+                      <span className="feedback-bullet-alert">!</span>
+                      <div className="feedback-item-content">
+                        <p>{item.text}</p>
+                        {item.count > 1 && (
+                          <span className="occurrence-badge alert">Flagged in {item.count} sessions</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* ACTIONABLE RECOMMENDATIONS */}
+          {recommendations.length > 0 && (
+            <div className="analytics-section-card recommendations-card">
+              <div className="section-card-header">
+                <BookOpen size={20} className="header-icon-emerald" />
+                <div>
+                  <h3>Actionable Recommendations & Study Plan</h3>
+                  <p className="muted">Targeted next steps compiled from real interview evaluations</p>
+                </div>
+              </div>
+
+              <div className="recommendations-grid">
+                {recommendations.map((rec, index) => (
+                  <div className="recommendation-item" key={index}>
+                    <div className="rec-number">{index + 1}</div>
+                    <p>{rec}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* RECENT INTERVIEW HISTORY TABLE */}
+          <div className="analytics-section-card">
+            <div className="section-card-header">
+              <Calendar size={20} className="header-icon-blue" />
+              <div>
+                <h3>Recent Interview History</h3>
+                <p className="muted">Recent session scorecard details and summaries</p>
+              </div>
+            </div>
+
+            {recentHistory.length === 0 ? (
+              <p className="muted empty-table-text">No completed interview records available.</p>
+            ) : (
+              <div className="analytics-table-wrap">
+                <table className="analytics-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Role</th>
+                      <th>Level</th>
+                      <th>Duration</th>
+                      <th>Score</th>
+                      <th>AI Feedback Summary</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentHistory.map((item) => {
+                      const badge = getScoreBadge(item.score);
+                      return (
+                        <tr key={item.id}>
+                          <td className="table-date">
+                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "—"}
+                          </td>
+                          <td className="table-role">
+                            <strong>{item.role}</strong>
+                          </td>
+                          <td>
+                            <span className="difficulty-pill">{item.difficulty}</span>
+                          </td>
+                          <td className="table-duration">{item.duration}m</td>
+                          <td>
+                            <span
+                              className="score-badge-table"
+                              style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
+                            >
+                              {item.score != null ? `${item.score}/100` : item.status}
+                            </span>
+                          </td>
+                          <td className="table-summary">
+                            <span className="summary-truncate" title={item.feedbackSummary}>
+                              {item.feedbackSummary || "Evaluation completed."}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="table-detail-btn"
+                              onClick={() => setSelectedHistoryItem(item)}
+                              title="View details"
+                            >
+                              Details <ChevronRight size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* FEEDBACK MODAL */}
+      {selectedHistoryItem && (
+        <div className="modal-backdrop" onClick={() => setSelectedHistoryItem(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <span className="analytics-eyebrow">INTERVIEW SCORECARD</span>
+                <h2>{selectedHistoryItem.role}</h2>
+                <p className="muted">
+                  {selectedHistoryItem.difficulty} Difficulty • {selectedHistoryItem.duration} Minutes
+                </p>
+              </div>
+              <button className="modal-close-btn" onClick={() => setSelectedHistoryItem(null)}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-score-banner">
+              <div>
+                <span className="modal-score-label">Final Evaluation Score</span>
+                <strong className="modal-score-val">{selectedHistoryItem.score}/100</strong>
+              </div>
+              <span
+                className="kpi-level-pill"
+                style={{
+                  backgroundColor: getScoreBadge(selectedHistoryItem.score).bg,
+                  color: getScoreBadge(selectedHistoryItem.score).text,
+                  borderColor: getScoreBadge(selectedHistoryItem.score).border
+                }}
+              >
+                {getScoreBadge(selectedHistoryItem.score).label}
+              </span>
+            </div>
+
+            <div className="modal-body">
+              <h3>AI Summary</h3>
+              <p className="modal-summary-text">
+                {selectedHistoryItem.feedbackSummary || "Detailed evaluation recorded for this session."}
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button className="primary-btn" onClick={() => setSelectedHistoryItem(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
