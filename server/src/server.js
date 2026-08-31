@@ -269,6 +269,212 @@ app.post("/api/v1/finish/:id", requireAuth(["candidate"]), async (req, res) => {
   }
 });
 
+app.get("/api/v1/analytics", requireAuth(["candidate", "admin", "recruiter"]), (req, res) => {
+  try {
+    const candidateEmail = String(req.user?.email || "").trim().toLowerCase();
+    if (!candidateEmail) {
+      return res.status(400).json({ error: "Candidate email is missing from authentication token" });
+    }
+
+    // Fetch all interviews for the logged-in candidate ordered chronologically
+    const rows = db.prepare(
+      "SELECT * FROM interviews WHERE lower(candidate_email) = lower(?) ORDER BY created_at ASC"
+    ).all(candidateEmail);
+
+    const totalAttempted = rows.length;
+    const completedRows = rows.filter(
+      (r) => r.score !== null && r.score !== undefined && (r.status === "Done" || Number(r.score) > 0)
+    );
+    const completedCount = completedRows.length;
+
+    // Calculate total minutes spent
+    let totalMinutesSpent = 0;
+    for (const r of rows) {
+      const transcript = parseJson(r.transcript, []);
+      if (Array.isArray(transcript) && transcript.length >= 2) {
+        const start = new Date(transcript[0].createdAt || r.created_at).getTime();
+        const end = new Date(transcript[transcript.length - 1].createdAt).getTime();
+        if (!isNaN(start) && !isNaN(end) && end > start) {
+          totalMinutesSpent += Math.round((end - start) / 60000);
+          continue;
+        }
+      }
+      if (r.score !== null && r.score !== undefined) {
+        totalMinutesSpent += Number(r.duration) || 45;
+      }
+    }
+
+    // Scores calculation
+    const scores = completedRows.map((r) => Number(r.score) || 0);
+    const averageScore =
+      scores.length > 0
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        : 0;
+    const highestScore = scores.length > 0 ? Math.max(...scores) : 0;
+    const latestScore = scores.length > 0 ? scores[scores.length - 1] : null;
+
+    // Score improvement trend (+/- pts)
+    let scoreImprovement = 0;
+    if (scores.length >= 2) {
+      scoreImprovement = Math.round(scores[scores.length - 1] - scores[0]);
+    }
+
+    // Score trend graph timeline
+    const scoreTrend = completedRows.map((r, index) => ({
+      index: index + 1,
+      id: r.id,
+      role: r.role,
+      difficulty: r.difficulty || "Medium",
+      score: Number(r.score) || 0,
+      date: r.created_at
+        ? new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        : `Session ${index + 1}`
+    }));
+
+    // Score distribution buckets
+    const distributionMap = {
+      "90-100 (Expert)": 0,
+      "75-89 (Proficient)": 0,
+      "50-74 (Competent)": 0,
+      "< 50 (Needs Practice)": 0,
+    };
+    for (const s of scores) {
+      if (s >= 90) distributionMap["90-100 (Expert)"]++;
+      else if (s >= 75) distributionMap["75-89 (Proficient)"]++;
+      else if (s >= 50) distributionMap["50-74 (Competent)"]++;
+      else distributionMap["< 50 (Needs Practice)"]++;
+    }
+    const scoreDistribution = Object.entries(distributionMap).map(([range, count]) => ({
+      range,
+      count,
+    }));
+
+    // Role-wise performance breakdown
+    const roleStatsMap = {};
+    for (const r of rows) {
+      const roleName = r.role || "General";
+      if (!roleStatsMap[roleName]) {
+        roleStatsMap[roleName] = { role: roleName, total: 0, completed: 0, scores: [] };
+      }
+      roleStatsMap[roleName].total++;
+      if (r.score !== null && r.score !== undefined) {
+        roleStatsMap[roleName].completed++;
+        roleStatsMap[roleName].scores.push(Number(r.score) || 0);
+      }
+    }
+    const rolePerformance = Object.values(roleStatsMap).map((item) => ({
+      role: item.role,
+      total: item.total,
+      completed: item.completed,
+      avgScore:
+        item.scores.length > 0
+          ? Math.round(item.scores.reduce((a, b) => a + b, 0) / item.scores.length)
+          : 0,
+      bestScore: item.scores.length > 0 ? Math.max(...item.scores) : 0,
+      latestScore: item.scores.length > 0 ? item.scores[item.scores.length - 1] : 0,
+    }));
+
+    // Aggregate AI feedback (Strengths, Weaknesses, Improvements)
+    const strengthsCount = {};
+    const weaknessesCount = {};
+    const improvementsCount = {};
+
+    for (const r of completedRows) {
+      const fb = parseJson(r.feedback, null);
+      if (fb && typeof fb === "object") {
+        if (Array.isArray(fb.strengths)) {
+          for (const s of fb.strengths) {
+            const clean = String(s).trim();
+            if (clean) strengthsCount[clean] = (strengthsCount[clean] || 0) + 1;
+          }
+        }
+        if (Array.isArray(fb.weaknesses)) {
+          for (const w of fb.weaknesses) {
+            const clean = String(w).trim();
+            if (clean) weaknessesCount[clean] = (weaknessesCount[clean] || 0) + 1;
+          }
+        }
+        if (Array.isArray(fb.improvements)) {
+          for (const imp of fb.improvements) {
+            const clean = String(imp).trim();
+            if (clean) improvementsCount[clean] = (improvementsCount[clean] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    const topStrengths = Object.entries(strengthsCount)
+      .map(([text, count]) => ({ text, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    const repeatedWeaknesses = Object.entries(weaknessesCount)
+      .map(([text, count]) => ({ text, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    const improvementRecommendations = Object.entries(improvementsCount)
+      .map(([text, count]) => ({ text, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    // Recent interview history (most recent first)
+    const recentHistory = [...rows].reverse().slice(0, 10).map((r) => {
+      const fb = parseJson(r.feedback, null);
+      return {
+        id: r.id,
+        role: r.role,
+        difficulty: r.difficulty || "Medium",
+        duration: r.duration || 45,
+        score: r.score,
+        status: r.status,
+        createdAt: r.created_at,
+        summary: fb?.summary || null,
+      };
+    });
+
+    // Generate Smart Performance Summary based on real data
+    let smartSummary =
+      "Complete your first practice interview to unlock deep AI analytics, performance trends, and role readiness scoring.";
+    if (completedCount > 0) {
+      if (completedCount === 1) {
+        smartSummary = `You completed your initial interview for "${completedRows[0].role}" with a score of ${averageScore}/100. Complete additional interviews across various difficulty levels to build consistent trend analysis.`;
+      } else if (scoreImprovement > 0) {
+        smartSummary = `Your performance is trending positively with a +${scoreImprovement} point score improvement across ${completedCount} completed sessions. Your average score stands at ${averageScore}/100 with a peak score of ${highestScore}/100.`;
+      } else if (scoreImprovement < 0) {
+        smartSummary = `You have completed ${completedCount} interviews with an average score of ${averageScore}/100. Recent harder sessions caused a slight dip (${scoreImprovement} pts). Focus on the AI recommendations below to strengthen consistency.`;
+      } else {
+        smartSummary = `You have maintained steady performance across ${completedCount} completed interviews with an average score of ${averageScore}/100 and a high of ${highestScore}/100.`;
+      }
+    }
+
+    res.json({
+      success: true,
+      candidateEmail,
+      metrics: {
+        totalAttempted,
+        completedCount,
+        totalMinutesSpent,
+        averageScore,
+        highestScore,
+        latestScore,
+        scoreImprovement,
+      },
+      scoreTrend,
+      scoreDistribution,
+      rolePerformance,
+      topStrengths,
+      repeatedWeaknesses,
+      improvementRecommendations,
+      recentHistory,
+      smartSummary,
+    });
+  } catch (err) {
+    console.error("ANALYTICS ERROR:", err);
+    res.status(500).json({ error: "Failed to generate analytics", details: err.message });
+  }
+});
+
 app.get("/api/v1/results", requireAuth(["admin", "recruiter", "candidate"]), (req, res) => {
   const rows =
     req.user.role === "candidate"

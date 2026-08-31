@@ -580,6 +580,16 @@ export default function App() {
     };
   }, [screen]);
 
+  useEffect(() => {
+    if (screen !== "interview") return;
+
+    const timer = setInterval(() => {
+      setSeconds(s => s + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [screen]);
+
   const handleLogout = () => {
     localStorage.removeItem("candidate_token");
     localStorage.removeItem("candidate_email");
@@ -654,10 +664,10 @@ export default function App() {
         candidateAuth()
       );
 
-      if (qIndex < interview.questions.length - 1) {
+      if (qIndex < (interview?.questions?.length || 0) - 1) {
         const ni = qIndex + 1;
         setQIndex(ni);
-        const q = interview.questions[ni];
+        const q = interview?.questions?.[ni] || "";
 
         setTranscript(t => [
           ...t,
@@ -819,6 +829,24 @@ export default function App() {
             }));
             setScreen("setup");
           }}
+        />
+      </AppShell>
+    );
+  }
+
+  if (screen === "analytics") {
+    return (
+      <AppShell
+        active="analytics"
+        onNav={setScreen}
+        candidateName={form.candidateName}
+        candidateEmail={candidateUser}
+        onLogout={handleLogout}
+      >
+        <Analytics
+          candidateEmail={candidateUser}
+          onStartPractice={() => setScreen("setup")}
+          onExplore={() => setScreen("explore")}
         />
       </AppShell>
     );
@@ -1090,7 +1118,7 @@ function Interview(p) {
           </div>
 
           <h2>AI Interviewer</h2>
-          <p>Question {p.qIndex + 1} of {p.i.questionsnterview.length}</p>
+          <p>Question {p.qIndex + 1} of {p.interview?.questions?.length || 12}</p>
 
           <button
             className={p.listening ? "mic active" : "mic"}
