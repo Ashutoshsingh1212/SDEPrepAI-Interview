@@ -1,0 +1,17 @@
+{
+  "name": "ai-interviewer-recreation",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^9.0.5",
+    "resend": "^6.20.0"
+  }
+}
