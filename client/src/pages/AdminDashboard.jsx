@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from "react";
 import axios from "axios";
-const API=import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API=import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
 const auth=()=>({headers:{Authorization:`Bearer ${localStorage.getItem("staff_token")||""}`}});
 export default function AdminDashboard({user,onLogout}){
  const [stats,setStats]=useState({total:0,completed:0,avg:0,users:0}); const [rows,setRows]=useState([]); const [error,setError]=useState("");

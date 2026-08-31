@@ -875,6 +875,7 @@ export default function App() {
           form={form}
           update={update}
           start={start}
+          onHome={() => setScreen("dashboard")}
         />
       </AppShell>
     );
@@ -954,6 +955,10 @@ export default function App() {
     );
   }
 
+  if (screen === "recruiter") {
+    return <RecruiterDashboard onBack={() => setScreen("dashboard")} />;
+  }
+
   if (screen === "result") {
     return (
       <Result
@@ -983,16 +988,33 @@ export default function App() {
         capturedImage,
         capturePhoto,
         retakePhoto,
-        transcriptRef
+        transcriptRef,
+        onHome: () => {
+          speechSynthesis?.cancel?.();
+          setScreen("dashboard");
+        }
       }}
     />
   );
 }
 
-function Setup({ form, update, start }) {
+function Setup({ form, update, start, onHome }) {
   return (
     <main className="page">
-      <div className="brand">
+      <div
+        className="brand"
+        onClick={onHome}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onHome?.();
+          }
+        }}
+        title="Return to Home Dashboard"
+        style={{ cursor: "pointer", userSelect: "none" }}
+      >
         <div className="logo">
           <Sparkles size={20} />
         </div>
@@ -1104,7 +1126,26 @@ function Interview(p) {
   return (
     <main className="page interview-page">
       <header>
-        <div className="brand">
+        <div
+          className="brand"
+          onClick={() => {
+            if (window.confirm("Return to home dashboard? Current interview session will be closed.")) {
+              p.onHome ? p.onHome() : p.finish();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (window.confirm("Return to home dashboard? Current interview session will be closed.")) {
+                p.onHome ? p.onHome() : p.finish();
+              }
+            }
+          }}
+          title="Return to Home Dashboard"
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
           <div className="logo">
             <Sparkles size={18} />
           </div>
@@ -1207,7 +1248,20 @@ function Interview(p) {
 function Result({ result, transcript, restart }) {
   return (
     <main className="page">
-      <div className="brand">
+      <div
+        className="brand"
+        onClick={restart}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            restart();
+          }
+        }}
+        title="Return to Home Dashboard"
+        style={{ cursor: "pointer", userSelect: "none" }}
+      >
         <div className="logo">
           <Sparkles size={20} />
         </div>
@@ -1282,7 +1336,20 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
           alignItems: "center"
         }}
       >
-        <div className="brand">
+        <div
+          className="brand"
+          onClick={() => onNav && onNav("dashboard")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onNav && onNav("dashboard");
+            }
+          }}
+          title="Return to Home Dashboard"
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
           <div className="logo">
             <Sparkles size={18} />
           </div>
