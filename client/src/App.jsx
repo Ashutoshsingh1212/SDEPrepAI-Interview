@@ -23,7 +23,10 @@ import {
   Smartphone,
   Palette,
   Sun,
-  Moon
+  Moon,
+  Award,
+  Activity,
+  CheckCircle2
 } from "lucide-react";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -840,6 +843,8 @@ export default function App() {
         onToggleTheme={toggleTheme}
       >
         <PracticeCatalog
+          dashboard={dashboard}
+          onGoAnalytics={() => setScreen("analytics")}
           onStart={(item) => {
             setForm(f => ({
               ...f,
@@ -1442,75 +1447,354 @@ function Dashboard({ dashboard, candidateName, goPractice, goExplore, goAnalytic
 }
 
 const INTERVIEW_CATALOG = [
-  { id: "py", domain: "Programming", domainKey: "software", role: "Python Developer", title: "Junior Python Dev", duration: 30, difficulty: "Easy", skills: ["Python", "OOP", "APIs"], description: "Python fundamentals, object-oriented programming, APIs and practical debugging.", icon: Code2, featured: true },
-  { id: "node", domain: "Programming", domainKey: "software", role: "Node.js Developer", title: "Junior Node.js Dev", duration: 25, difficulty: "Easy", skills: ["Node.js", "Express", "REST"], description: "Node.js, Express, REST APIs, async programming and backend fundamentals.", icon: Code2 },
-  { id: "react", domain: "Programming", domainKey: "software", role: "Frontend Developer", title: "React Frontend Interview", duration: 35, difficulty: "Medium", skills: ["React", "JavaScript", "CSS"], description: "React components, state, hooks, browser fundamentals and frontend architecture.", icon: Code2, featured: true },
-  { id: "java", domain: "Programming", domainKey: "software", role: "Java Developer", title: "Java Backend Interview", duration: 35, difficulty: "Medium", skills: ["Java", "Spring", "SQL"], description: "Java, Spring-style backend concepts, APIs, databases and problem solving.", icon: Code2 },
-  { id: "ai", domain: "AI / Machine Learning", domainKey: "ai", role: "AI Engineer", title: "AI / ML Engineer", duration: 45, difficulty: "Hard", skills: ["ML", "LLMs", "RAG"], description: "Machine learning, LLM applications, RAG, evaluation and production AI systems.", icon: BrainCircuit, featured: true },
-  { id: "data", domain: "Data", domainKey: "data", role: "Data Scientist", title: "Data Science Interview", duration: 40, difficulty: "Medium", skills: ["Python", "SQL", "Statistics"], description: "Statistics, SQL, analytics, experiments and practical data science reasoning.", icon: Database, featured: true },
-  { id: "sql", domain: "Data", domainKey: "data", role: "SQL Developer", title: "SQL & Analytics", duration: 30, difficulty: "Easy", skills: ["SQL", "Joins", "Window Functions"], description: "SQL querying, joins, aggregations, window functions and analytics cases.", icon: Database },
-  { id: "devops", domain: "DevOps & Cloud", domainKey: "cloud", role: "DevOps Engineer", title: "DevOps / Cloud Interview", duration: 40, difficulty: "Hard", skills: ["AWS", "Docker", "Kubernetes"], description: "Cloud architecture, containers, Kubernetes, CI/CD and operational troubleshooting.", icon: Cloud, featured: true },
-  { id: "security", domain: "Cybersecurity", domainKey: "security", role: "Security Engineer", title: "Cybersecurity Interview", duration: 40, difficulty: "Hard", skills: ["Web Security", "IAM", "Threats"], description: "Application security, identity, threat modeling, incident response and cloud security.", icon: ShieldCheck },
-  { id: "mobile", domain: "Mobile Development", domainKey: "mobile", role: "Mobile Developer", title: "Mobile App Interview", duration: 35, difficulty: "Medium", skills: ["Android", "Flutter", "React Native"], description: "Mobile architecture, state, performance, APIs and cross-platform development.", icon: Smartphone },
-  { id: "product", domain: "Product / Design", domainKey: "product", role: "Product Manager", title: "Product Case Interview", duration: 35, difficulty: "Medium", skills: ["Product Sense", "UX", "Metrics"], description: "Product sense, prioritisation, UX thinking, metrics and product case studies.", icon: Palette }
+  { id: "react", domain: "Software Engineering", domainKey: "software", role: "Frontend Developer", title: "React Frontend Interview", duration: 35, difficulty: "Medium", skills: ["React", "JavaScript", "CSS", "Hooks"], description: "React components, state management, hooks, DOM optimization and modern frontend architecture.", icon: Code2, featured: true, color: "#61dafb" },
+  { id: "py", domain: "Software Engineering", domainKey: "software", role: "Python Developer", title: "Python Software Engineer", duration: 30, difficulty: "Easy", skills: ["Python", "OOP", "APIs", "Data Structures"], description: "Python core, object-oriented design, REST APIs, generators and practical problem solving.", icon: Code2, featured: true, color: "#38bdf8" },
+  { id: "node", domain: "Software Engineering", domainKey: "software", role: "Node.js Developer", title: "Node.js Backend Developer", duration: 30, difficulty: "Medium", skills: ["Node.js", "Express", "REST", "Async/Await"], description: "Asynchronous I/O, Express microservices, RESTful design, event loops and database integration.", icon: Code2, color: "#4ade80" },
+  { id: "java", domain: "Software Engineering", domainKey: "software", role: "Java Developer", title: "Java & Spring Boot Engineer", duration: 40, difficulty: "Medium", skills: ["Java", "Spring Boot", "SQL", "Microservices"], description: "Java backend patterns, Spring Boot APIs, multithreading, Hibernate and transactional data.", icon: Code2, featured: true, color: "#fb923c" },
+  { id: "ai", domain: "AI / Machine Learning", domainKey: "ai", role: "AI Engineer", title: "AI & Generative AI Specialist", duration: 45, difficulty: "Hard", skills: ["PyTorch", "LLMs", "RAG", "Transformers"], description: "Foundation models, LangChain, RAG architectures, prompt engineering and production AI deployment.", icon: BrainCircuit, featured: true, color: "#a855f7" },
+  { id: "data", domain: "Data Science", domainKey: "data", role: "Data Scientist", title: "Data Science & Analytics", duration: 40, difficulty: "Medium", skills: ["Python", "SQL", "Statistics", "Pandas"], description: "Statistical inference, exploratory data analysis, regression, classification and feature engineering.", icon: Database, featured: true, color: "#facc15" },
+  { id: "sql", domain: "Data Science", domainKey: "data", role: "SQL Developer", title: "SQL & Query Optimization", duration: 30, difficulty: "Easy", skills: ["SQL", "Joins", "Window Functions", "Indexing"], description: "Complex SQL querying, schema normalization, execution plans, CTEs and analytical window functions.", icon: Database, color: "#38bdf8" },
+  { id: "devops", domain: "Cloud & DevOps", domainKey: "cloud", role: "DevOps Engineer", title: "DevOps & Cloud Architect", duration: 45, difficulty: "Hard", skills: ["AWS", "Docker", "Kubernetes", "CI/CD"], description: "Container orchestration, Terraform infrastructure as code, CI/CD pipelines and high availability.", icon: Cloud, featured: true, color: "#60a5fa" },
+  { id: "security", domain: "Cybersecurity", domainKey: "security", role: "Security Engineer", title: "Cybersecurity & AppSec", duration: 40, difficulty: "Hard", skills: ["OWASP", "Threat Modeling", "IAM", "Auth"], description: "Web vulnerabilities, penetration testing concepts, cryptography, OAuth2 and threat mitigation.", icon: ShieldCheck, color: "#f87171" },
+  { id: "mobile", domain: "Mobile Development", domainKey: "mobile", role: "Mobile Developer", title: "React Native Mobile Dev", duration: 35, difficulty: "Medium", skills: ["React Native", "iOS", "Android", "State"], description: "Cross-platform mobile architecture, native bridges, animations and offline persistence.", icon: Smartphone, color: "#818cf8" },
+  { id: "product", domain: "Product / Strategy", domainKey: "product", role: "Product Manager", title: "Technical Product Manager", duration: 35, difficulty: "Medium", skills: ["Product Strategy", "Metrics", "System Design"], description: "Product discovery, user journeys, KPI definitions, trade-off analysis and technical roadmapping.", icon: Palette, color: "#ec4899" }
 ];
 
 const DOMAIN_FILTERS = [
-  ["all", "All domains"],
+  ["all", "All Domains"],
   ["software", "Programming"],
   ["ai", "AI / ML"],
-  ["data", "Data"],
+  ["data", "Data Science"],
   ["cloud", "DevOps & Cloud"],
   ["security", "Cybersecurity"],
   ["mobile", "Mobile"],
-  ["product", "Product / Design"]
+  ["product", "Product"]
 ];
 
-function PracticeCatalog({ onStart }) {
+const SKILLS_LIST = [
+  "All Skills",
+  "React",
+  "Python",
+  "Node.js",
+  "Java",
+  "SQL",
+  "JavaScript",
+  "PyTorch",
+  "LLMs",
+  "AWS",
+  "Docker",
+  "Kubernetes",
+  "Spring Boot",
+  "Statistics",
+  "OWASP",
+  "System Design"
+];
+
+function PracticeCatalog({ onStart, dashboard, onGoAnalytics }) {
   const [query, setQuery] = useState("");
   const [domain, setDomain] = useState("all");
+  const [skill, setSkill] = useState("All Skills");
   const [difficulty, setDifficulty] = useState("all");
   const [sort, setSort] = useState("recommended");
 
   const filtered = INTERVIEW_CATALOG
     .filter(x => domain === "all" || x.domainKey === domain)
     .filter(x => difficulty === "all" || x.difficulty === difficulty)
-    .filter(x => `${x.title} ${x.role} ${x.domain} ${x.skills.join(" ")}`.toLowerCase().includes(query.toLowerCase()))
-    .sort((a, b) => sort === "duration" ? a.duration - b.duration : sort === "difficulty" ? ["Easy", "Medium", "Hard"].indexOf(a.difficulty) - ["Easy", "Medium", "Hard"].indexOf(b.difficulty) : Number(b.featured) - Number(a.featured));
+    .filter(x => skill === "All Skills" || x.skills.includes(skill))
+    .filter(x => `${x.title} ${x.role} ${x.domain} ${x.skills.join(" ")} ${x.description}`.toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => {
+      if (sort === "duration-short") return a.duration - b.duration;
+      if (sort === "duration-long") return b.duration - a.duration;
+      if (sort === "diff-easy") return ["Easy", "Medium", "Hard"].indexOf(a.difficulty) - ["Easy", "Medium", "Hard"].indexOf(b.difficulty);
+      if (sort === "diff-hard") return ["Hard", "Medium", "Easy"].indexOf(a.difficulty) - ["Hard", "Medium", "Easy"].indexOf(b.difficulty);
+      return Number(b.featured) - Number(a.featured);
+    });
+
+  // HackerEarth style community leaderboard data
+  const leaderboardList = [
+    { rank: 1, name: "Ashutosh Singh", score: 98, role: "AI & Generative AI Specialist", badge: "🥇" },
+    { rank: 2, name: "Hardik Patel", score: 96, role: "React Frontend Interview", badge: "🥈" },
+    { rank: 3, name: "Aryan Verma", score: 94, role: "DevOps & Cloud Architect", badge: "🥉" },
+    { rank: 4, name: "Abhinav Kumar", score: 92, role: "Java & Spring Boot Engineer", badge: "4" },
+    { rank: 5, name: "Aman Gupta", score: 90, role: "Python Software Engineer", badge: "5" },
+    { rank: 6, name: "Priya Sharma", score: 88, role: "Data Science & Analytics", badge: "6" }
+  ];
 
   return (
-    <div className="catalog-page">
-      <div className="catalog-hero">
-        <div>
-          <span className="eyebrow">INTERVIEW PREP LIBRARY</span>
-          <h1>More Interview Prep</h1>
-          <p>Practice with domain-specific AI mock interviews designed around real technical and product roles.</p>
+    <div className="he-ai-interviews-page">
+      {/* Top Header Title */}
+      <div className="he-page-header">
+        <div className="he-title-row">
+          <h1 className="he-main-title">AI Interviews</h1>
+          <div className="he-title-divider" />
+          <span className="he-sub-description">Practice with AI-powered mock interviews</span>
         </div>
-        <div className="catalog-hero-stat"><strong>{INTERVIEW_CATALOG.length}</strong><span>interview tracks</span></div>
       </div>
 
-      <div className="catalog-toolbar">
-        <div className="search-box"><Search size={18} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search interviews, roles or skills..." /></div>
-        <div className="toolbar-select"><SlidersHorizontal size={16} /><select value={difficulty} onChange={e => setDifficulty(e.target.value)}><option value="all">All levels</option><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
-        <div className="toolbar-select"><ChevronDown size={16} /><select value={sort} onChange={e => setSort(e.target.value)}><option value="recommended">Recommended</option><option value="duration">Shortest first</option><option value="difficulty">Difficulty</option></select></div>
+      {/* Main Two-Column Layout */}
+      <div className="he-layout-container">
+        {/* Left / Main Section */}
+        <div className="he-main-content">
+          <div className="he-section-header">
+            <h2 className="he-section-title">More Interview Prep</h2>
+          </div>
+
+          {/* Controls Bar: Search, Skills, Difficulty, Sort */}
+          <div className="he-control-bar">
+            <div className="he-filters-left">
+              {/* Search Bar */}
+              <div className="he-search-box">
+                <Search size={15} className="he-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search interviews, roles or skills..."
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  className="he-search-input"
+                />
+                {query && (
+                  <button className="he-search-clear" onClick={() => setQuery("")}>×</button>
+                )}
+              </div>
+
+              {/* Skills Dropdown */}
+              <div className="he-dropdown-wrapper">
+                <SlidersHorizontal size={14} className="he-dropdown-icon" />
+                <select
+                  value={skill}
+                  onChange={e => setSkill(e.target.value)}
+                  className="he-select"
+                >
+                  {SKILLS_LIST.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Difficulty Dropdown */}
+              <div className="he-dropdown-wrapper">
+                <Star size={14} className="he-dropdown-icon" />
+                <select
+                  value={difficulty}
+                  onChange={e => setDifficulty(e.target.value)}
+                  className="he-select"
+                >
+                  <option value="all">All Difficulty</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="he-sort-wrapper">
+              <ChevronDown size={14} className="he-dropdown-icon" />
+              <select
+                value={sort}
+                onChange={e => setSort(e.target.value)}
+                className="he-select he-sort-select"
+              >
+                <option value="recommended">Sort: Recommended</option>
+                <option value="duration-short">Shortest First</option>
+                <option value="duration-long">Longest First</option>
+                <option value="diff-easy">Easy to Hard</option>
+                <option value="diff-hard">Hard to Easy</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Domain Pills */}
+          <div className="he-domain-tabs">
+            {DOMAIN_FILTERS.map(([key, label]) => (
+              <button
+                key={key}
+                className={`he-domain-tab ${domain === key ? "active" : ""}`}
+                onClick={() => setDomain(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Track Count Indicator */}
+          <div className="he-results-counter">
+            <span>Showing <strong>{filtered.length}</strong> available interviews</span>
+          </div>
+
+          {/* 3-Column Card Grid */}
+          <div className="he-cards-grid">
+            {filtered.map(item => {
+              const Icon = item.icon;
+              return (
+                <div className="he-interview-card" key={item.id}>
+                  {/* Card Cover Banner */}
+                  <div
+                    className="he-card-banner"
+                    style={{
+                      background: `radial-gradient(circle at 75% 20%, ${item.color}22 0%, #10141f 70%)`,
+                      borderBottom: `1px solid #1e2433`
+                    }}
+                  >
+                    <div className="he-card-icon-wrap" style={{ color: item.color || "#8d9cff" }}>
+                      <Icon size={34} />
+                    </div>
+                    <span className="he-banner-tag">AI Mock Interview</span>
+                    {item.featured && (
+                      <span className="he-featured-tag">
+                        <Star size={11} fill="#facc15" color="#facc15" /> Featured
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="he-card-body">
+                    <div className="he-card-domain-label">{item.domain}</div>
+                    <h3 className="he-card-title">{item.title}</h3>
+                    <p className="he-card-desc">{item.description}</p>
+
+                    {/* Meta info: duration & difficulty */}
+                    <div className="he-card-meta-row">
+                      <span className="he-meta-item">
+                        <Clock size={13} /> {item.duration} mins
+                      </span>
+                      <span className={`he-difficulty-tag ${item.difficulty.toLowerCase()}`}>
+                        <span className="he-diff-dot" />
+                        {item.difficulty}
+                      </span>
+                    </div>
+
+                    {/* Skill Tags */}
+                    <div className="he-card-skills-row">
+                      {item.skills.slice(0, 3).map(s => (
+                        <span className="he-skill-pill" key={s}>{s}</span>
+                      ))}
+                      {item.skills.length > 3 && (
+                        <span className="he-skill-pill more">+{item.skills.length - 3}</span>
+                      )}
+                    </div>
+
+                    {/* Action Button */}
+                    <button
+                      className="he-start-btn"
+                      onClick={() => onStart(item)}
+                    >
+                      <span>Start Interview</span>
+                      <ArrowRight size={15} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Empty state */}
+          {filtered.length === 0 && (
+            <div className="he-empty-catalog">
+              <BookOpen size={36} className="muted" />
+              <h3>No matching interview tracks found</h3>
+              <p className="muted">Try adjusting your search query, skill tags or difficulty filters.</p>
+              <button
+                className="secondary-btn"
+                onClick={() => { setQuery(""); setDomain("all"); setSkill("All Skills"); setDifficulty("all"); }}
+                style={{ marginTop: 12 }}
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar: HackerEarth Style Leaderboard & Status */}
+        <div className="he-sidebar-column">
+          {/* Leaderboard Card */}
+          <div className="he-sidebar-card">
+            <div className="he-sidebar-card-header">
+              <div className="he-sidebar-header-title">
+                <Award size={18} style={{ color: "#facc15" }} />
+                <h3>Leaderboard</h3>
+              </div>
+              <span className="he-sidebar-tag">Top Scores</span>
+            </div>
+
+            <div className="he-leaderboard-list">
+              {leaderboardList.map(u => (
+                <div className="he-leaderboard-item" key={u.rank}>
+                  <div className="he-leaderboard-rank">
+                    <span>{u.badge}</span>
+                  </div>
+                  <div className="he-leaderboard-info">
+                    <strong>{u.name}</strong>
+                    <small>{u.role}</small>
+                  </div>
+                  <div className="he-leaderboard-score">
+                    <strong>{u.score}</strong>
+                    <small>/100</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Your Practice Status */}
+          {dashboard && (
+            <div className="he-sidebar-card prep-status-card">
+              <div className="he-sidebar-card-header">
+                <div className="he-sidebar-header-title">
+                  <Activity size={18} style={{ color: "#8d9cff" }} />
+                  <h3>Your Prep Status</h3>
+                </div>
+              </div>
+
+              <div className="he-status-stats">
+                <div className="he-status-stat">
+                  <small>Completed</small>
+                  <strong>{dashboard.count || 0}</strong>
+                </div>
+                <div className="he-status-stat">
+                  <small>Avg Score</small>
+                  <strong>{dashboard.avg || 0}/100</strong>
+                </div>
+                <div className="he-status-stat">
+                  <small>Best Score</small>
+                  <strong>{dashboard.best || 0}/100</strong>
+                </div>
+              </div>
+
+              {onGoAnalytics && (
+                <button className="he-analytics-btn" onClick={onGoAnalytics}>
+                  View Full Analytics 📈
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Feature Highlights */}
+          <div className="he-sidebar-card features-card">
+            <div className="he-sidebar-card-header">
+              <div className="he-sidebar-header-title">
+                <Sparkles size={18} style={{ color: "#a855f7" }} />
+                <h3>Why Practice Here?</h3>
+              </div>
+            </div>
+
+            <div className="he-feature-bullets">
+              <div className="he-feature-bullet">
+                <CheckCircle2 size={15} style={{ color: "#4ade80", flexShrink: 0 }} />
+                <span><strong>Instant Scoring:</strong> Detailed AI rubric evaluating accuracy & depth.</span>
+              </div>
+              <div className="he-feature-bullet">
+                <CheckCircle2 size={15} style={{ color: "#4ade80", flexShrink: 0 }} />
+                <span><strong>Speech & Cam:</strong> Practice voice answers in real interview pressure.</span>
+              </div>
+              <div className="he-feature-bullet">
+                <CheckCircle2 size={15} style={{ color: "#4ade80", flexShrink: 0 }} />
+                <span><strong>12 Strict Questions:</strong> Tailored DSA, system design & behavioural questions.</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="domain-pills">{DOMAIN_FILTERS.map(([key, label]) => <button key={key} className={domain === key ? "domain-pill active" : "domain-pill"} onClick={() => setDomain(key)}>{label}</button>)}</div>
-
-      <div className="catalog-heading"><div><h2>{domain === "all" ? "All interview prep" : DOMAIN_FILTERS.find(x => x[0] === domain)?.[1]}</h2><p>{filtered.length} matching interviews</p></div></div>
-
-      <div className="catalog-grid">
-        {filtered.map(item => {
-          const Icon = item.icon;
-          return (
-            <article className="interview-card" key={item.id}>
-              <div className="interview-cover"><div className="cover-icon"><Icon size={42} /></div><span className="cover-badge">Interview Prep</span>{item.featured && <span className="featured-badge"><Star size={12} fill="currentColor" /> Featured</span>}</div>
-              <div className="interview-card-body"><div className="card-domain">{item.domain}</div><h3>{item.title}</h3><p>{item.description}</p><div className="card-meta"><span>◷ {item.duration}m</span><span>◒ {item.difficulty}</span></div><div className="card-tags">{item.skills.map(s => <span key={s}>{s}</span>)}</div><button className="catalog-start" onClick={() => onStart(item)}>Start practice <ArrowRight size={16} /></button></div>
-            </article>
-          );
-        })}
-      </div>
-      {filtered.length === 0 && <div className="empty-catalog"><BookOpen size={28} /><h3>No interviews found</h3><p>Try another domain, skill or difficulty.</p></div>}
     </div>
   );
 }
