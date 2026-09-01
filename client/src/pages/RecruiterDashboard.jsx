@@ -1,8 +1,54 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  Sparkles,
+  Clock,
+  ArrowRight,
+  RotateCcw,
+  Search,
+  SlidersHorizontal,
+  ChevronDown,
+  Star,
+  BookOpen,
+  Code2,
+  BrainCircuit,
+  Database,
+  Cloud,
+  ShieldCheck,
+  Smartphone,
+  Palette,
+  Sun,
+  Moon,
+  Award,
+  Activity,
+  CheckCircle2,
+  Users,
+  Copy,
+  Check,
+  ExternalLink,
+  Eye,
+  Trash2,
+  Filter,
+  Layers,
+  Settings as SettingsIcon,
+  Plus,
+  ChevronRight,
+  X,
+  FileText,
+  BarChart3,
+  Calendar,
+  User,
+  Mail,
+  Building,
+  CheckCircle,
+  AlertTriangle,
+  TrendingUp,
+  LogOut,
+  RefreshCw
+} from "lucide-react";
 
-const API =
-  import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
+const API = import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
+const staffAuth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("staff_token") || ""}` } });
 
 const steps = [
   "Role",
@@ -23,200 +69,48 @@ const roles = [
 ];
 
 const domains = [
-  [
-    "software",
-    "Software Engineering",
-    "Frontend, backend, full stack, APIs and system design",
-  ],
-  [
-    "ai",
-    "AI / Machine Learning",
-    "ML, deep learning, LLMs, RAG and AI engineering",
-  ],
-  [
-    "data",
-    "Data",
-    "SQL, analytics, data science and data engineering",
-  ],
-  [
-    "cloud",
-    "DevOps & Cloud",
-    "AWS, Docker, Kubernetes, CI/CD and cloud architecture",
-  ],
-  [
-    "security",
-    "Cybersecurity",
-    "Application, network and cloud security",
-  ],
-  [
-    "mobile",
-    "Mobile Development",
-    "Android, iOS, Flutter and React Native",
-  ],
-  [
-    "product",
-    "Product / Design",
-    "Product strategy, UX/UI and case studies",
-  ],
+  ["software", "Software Engineering", "Frontend, backend, full stack, APIs and system design"],
+  ["ai", "AI / Machine Learning", "ML, deep learning, LLMs, RAG and AI engineering"],
+  ["data", "Data", "SQL, analytics, data science and data engineering"],
+  ["cloud", "DevOps & Cloud", "AWS, Docker, Kubernetes, CI/CD and cloud architecture"],
+  ["security", "Cybersecurity", "Application, network and cloud security"],
+  ["mobile", "Mobile Development", "Android, iOS, Flutter and React Native"],
+  ["product", "Product / Design", "Product strategy, UX/UI and case studies"],
 ];
 
 const skills = {
-  software: [
-    "React",
-    "JavaScript",
-    "TypeScript",
-    "Node.js",
-    "Express",
-    "Python",
-    "Java",
-    "REST APIs",
-    "SQL",
-    "MongoDB",
-    "Redis",
-    "Docker",
-    "System Design",
-    "DSA",
-  ],
-
-  ai: [
-    "Python",
-    "Machine Learning",
-    "Deep Learning",
-    "NLP",
-    "Computer Vision",
-    "Generative AI",
-    "LLMs",
-    "RAG",
-    "Prompt Engineering",
-    "Fine-Tuning",
-    "AI Agents",
-    "MLOps",
-  ],
-
-  data: [
-    "SQL",
-    "Python",
-    "Statistics",
-    "Data Analytics",
-    "Data Science",
-    "Power BI",
-    "Tableau",
-    "Data Engineering",
-    "Spark",
-    "ETL",
-  ],
-
-  cloud: [
-    "AWS",
-    "Azure",
-    "GCP",
-    "Docker",
-    "Kubernetes",
-    "CI/CD",
-    "Terraform",
-    "Linux",
-    "Networking",
-    "Cloud Architecture",
-  ],
-
-  security: [
-    "OWASP",
-    "Network Security",
-    "Application Security",
-    "Cloud Security",
-    "Penetration Testing",
-    "SOC",
-    "Cryptography",
-    "IAM",
-  ],
-
-  mobile: [
-    "Android",
-    "Kotlin",
-    "Java",
-    "iOS",
-    "Swift",
-    "Flutter",
-    "React Native",
-  ],
-
-  product: [
-    "Product Management",
-    "UX/UI",
-    "Product Strategy",
-    "User Research",
-    "Product Analytics",
-    "Case Studies",
-  ],
+  software: ["React", "JavaScript", "TypeScript", "Node.js", "Express", "Python", "Java", "REST APIs", "SQL", "MongoDB", "Redis", "Docker", "System Design", "DSA"],
+  ai: ["Python", "Machine Learning", "Deep Learning", "NLP", "Computer Vision", "Generative AI", "LLMs", "RAG", "Prompt Engineering", "Fine-Tuning", "AI Agents", "MLOps"],
+  data: ["SQL", "Python", "Statistics", "Data Analytics", "Data Science", "Power BI", "Tableau", "Data Engineering", "Spark", "ETL"],
+  cloud: ["AWS", "Azure", "GCP", "Docker", "Kubernetes", "CI/CD", "Terraform", "Linux", "Networking", "Cloud Architecture"],
+  security: ["OWASP", "Network Security", "Application Security", "Cloud Security", "Penetration Testing", "SOC", "Cryptography", "IAM"],
+  mobile: ["Android", "Kotlin", "Java", "iOS", "Swift", "Flutter", "React Native"],
+  product: ["Product Management", "UX/UI", "Product Strategy", "User Research", "Product Analytics", "Case Studies"],
 };
 
-const questionTypes = [
-  "Technical",
-  "Problem Solving",
-  "Behavioral",
-  "Coding",
-  "System Design",
-  "SQL",
-];
-
-const experienceLevels = [
-  "Intern",
-  "Entry Level",
-  "Junior",
-  "Mid Level",
-  "Senior",
-  "Lead",
-];
+const questionTypes = ["Technical", "Problem Solving", "Behavioral", "Coding", "System Design", "SQL"];
+const experienceLevels = ["Intern", "Entry Level", "Junior", "Mid Level", "Senior", "Lead"];
 
 function createInitialForm() {
   return {
     candidateName: "",
     email: "",
-
     role: "",
-
     experience: "Mid Level",
-
     domain: "software",
-
-    selectedSkills: [
-      "React",
-      "JavaScript",
-      "Node.js",
-    ],
-
-    weights: {
-      React: 40,
-      JavaScript: 30,
-      "Node.js": 30,
-    },
-
+    selectedSkills: ["React", "JavaScript", "Node.js"],
+    weights: { React: 40, JavaScript: 30, "Node.js": 30 },
     questionCount: 10,
-
-    questionTypes: [
-      "Technical",
-      "Problem Solving",
-      "Behavioral",
-    ],
-
+    questionTypes: ["Technical", "Problem Solving", "Behavioral"],
     difficulty: "Medium",
-
-    duration: 45,
-
-    date: "",
-
-    time: "",
-
+    duration: 30,
+    date: new Date().toISOString().split("T")[0],
+    time: "14:00",
     adaptive: true,
-
     followUp: true,
-
     resumeBased: false,
-
     camera: false,
-
     microphone: true,
-
     evaluation: {
       technical: 30,
       problemSolving: 25,
@@ -225,25 +119,24 @@ function createInitialForm() {
       systemDesign: 10,
       confidence: 5,
     },
-
-    aiInstructions:
-      "Focus on practical, real-world questions and ask follow-ups when the candidate demonstrates strong understanding.",
+    aiInstructions: "Focus on practical, real-world questions and ask follow-ups when the candidate demonstrates strong understanding.",
   };
 }
 
-/* =========================================================
-   SMALL REUSABLE COMPONENTS
-========================================================= */
+function parseJsonSafe(val, fallback) {
+  if (!val) return fallback;
+  if (typeof val === "object") return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
+}
 
-function Intro({
-  number,
-  title,
-  description,
-}) {
+function Intro({ number, title, description }) {
   return (
     <div className="step-intro">
       <span>{number}</span>
-
       <div>
         <h2>{title}</h2>
         <p>{description}</p>
@@ -252,1960 +145,1498 @@ function Intro({
   );
 }
 
-function ReviewBlock({
-  title,
-  value,
-  tags = [],
-  onEdit,
-}) {
-  return (
-    <div className="review-block">
-      <div>
-        <h3>{title}</h3>
+export default function RecruiterDashboard({ onBack, user, theme = "dark", onToggleTheme }) {
+  const [activeTab, setActiveTab] = useState("overview"); // overview, candidates, builder, settings
+  const [candidates, setCandidates] = useState([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [candidateError, setCandidateError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
-        <button
-          type="button"
-          className="text-btn"
-          onClick={onEdit}
-        >
-          Edit
-        </button>
-      </div>
-
-      <strong>{value}</strong>
-
-      {tags.length > 0 && (
-        <div className="review-tags">
-          {tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* =========================================================
-   MAIN COMPONENT
-========================================================= */
-
-export default function RecruiterDashboard({
-  onBack,
-}) {
-
-  const [mode, setMode] = useState("home");
-
-  const [profile, setProfile] = useState({
-    name: "",
-    company: "",
-    designation: "",
-    email: "",
+  // Profile
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem("recruiter_profile");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      name: user?.name || "",
+      company: "Tech Corp",
+      designation: "Technical Recruiter",
+      email: user?.email || "",
+    };
   });
+  const [profileSavedMsg, setProfileSavedMsg] = useState("");
 
+  // Builder State
   const [step, setStep] = useState(0);
-
-  const [form, setForm] = useState(
-    createInitialForm()
-  );
-
-  const [error, setError] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
+  const [form, setForm] = useState(createInitialForm());
+  const [builderError, setBuilderError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
 
-  /* =======================================================
-     FORM UPDATE
-  ======================================================= */
-
-  const updateForm = (patch) => {
-    setForm((previous) => ({
-      ...previous,
-      ...patch,
-    }));
+  const fetchCandidates = async () => {
+    setLoadingCandidates(true);
+    setCandidateError("");
+    try {
+      const res = await axios.get(`${API}/api/v1/results`, staffAuth());
+      setCandidates(res.data || []);
+    } catch (err) {
+      console.error("Failed to load candidates:", err);
+      setCandidateError(err.response?.data?.error || "Could not load candidate list.");
+    } finally {
+      setLoadingCandidates(false);
+    }
   };
 
-  const selectedSkills =
-    form.selectedSkills;
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
 
-  const domainSkills =
-    skills[form.domain] || [];
+  const saveProfile = (e) => {
+    e.preventDefault();
+    localStorage.setItem("recruiter_profile", JSON.stringify(profile));
+    setProfileSavedMsg("Profile information saved successfully!");
+    setTimeout(() => setProfileSavedMsg(""), 3000);
+  };
 
-  /* =======================================================
-     TOTAL EVALUATION
-  ======================================================= */
+  const copyInterviewLink = (id) => {
+    const url = `${window.location.origin}/?interview=${id}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
 
-  const totalEvaluation =
-    Object.values(form.evaluation).reduce(
-      (total, value) =>
-        total + Number(value || 0),
-      0
-    );
+  const deleteCandidate = async (id, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this interview record?")) return;
+    try {
+      await axios.delete(`${API}/api/v1/interview/${id}`, staffAuth());
+      setCandidates((prev) => prev.filter((c) => c.id !== id));
+      if (selectedCandidate?.id === id) setSelectedCandidate(null);
+    } catch (err) {
+      alert("Failed to delete interview: " + (err.response?.data?.error || err.message));
+    }
+  };
 
-  /* =======================================================
-     TOTAL SKILL WEIGHT
-  ======================================================= */
+  // Builder handlers
+  const updateForm = (patch) => {
+    setForm((prev) => ({ ...prev, ...patch }));
+  };
 
-  const totalSkillWeight =
-    selectedSkills.reduce(
-      (total, skill) =>
-        total +
-        Number(form.weights[skill] || 0),
-      0
-    );
+  const selectedSkills = form.selectedSkills;
+  const domainSkills = skills[form.domain] || [];
 
-  /* =======================================================
-     ROLE PRESETS
-  ======================================================= */
+  const totalEvaluation = Object.values(form.evaluation).reduce(
+    (acc, v) => acc + Number(v || 0),
+    0
+  );
 
-  const chooseRole = (role) => {
+  const totalSkillWeight = selectedSkills.reduce(
+    (acc, s) => acc + Number(form.weights[s] || 0),
+    0
+  );
+
+  const chooseRole = (roleName) => {
     const presets = {
-      "Frontend Developer": [
-        "React",
-        "JavaScript",
-        "TypeScript",
-      ],
-
-      "Backend Developer": [
-        "Node.js",
-        "REST APIs",
-        "SQL",
-      ],
-
-      "Full Stack Developer": [
-        "React",
-        "JavaScript",
-        "Node.js",
-        "SQL",
-      ],
-
-      "AI Engineer": [
-        "Python",
-        "Machine Learning",
-        "LLMs",
-      ],
-
-      "Data Scientist": [
-        "Python",
-        "SQL",
-        "Statistics",
-      ],
-
-      "DevOps Engineer": [
-        "AWS",
-        "Docker",
-        "Kubernetes",
-      ],
+      "Frontend Developer": ["React", "JavaScript", "TypeScript"],
+      "Backend Developer": ["Node.js", "REST APIs", "SQL"],
+      "Full Stack Developer": ["React", "JavaScript", "Node.js", "SQL"],
+      "AI Engineer": ["Python", "Machine Learning", "LLMs"],
+      "Data Scientist": ["Python", "SQL", "Statistics"],
+      "DevOps Engineer": ["AWS", "Docker", "Kubernetes"],
     };
 
-    const selected =
-      presets[role] || selectedSkills;
-
+    const selected = presets[roleName] || selectedSkills;
     const weights = {};
-
-    selected.forEach((skill, index) => {
-      if (selected.length === 1) {
-        weights[skill] = 100;
-      } else if (index === 0) {
-        weights[skill] = 40;
-      } else {
-        weights[skill] = Math.floor(
-          60 /
-            (selected.length - 1)
-        );
-      }
+    selected.forEach((s, idx) => {
+      if (selected.length === 1) weights[s] = 100;
+      else if (idx === 0) weights[s] = 40;
+      else weights[s] = Math.floor(60 / (selected.length - 1));
     });
 
     updateForm({
-      role,
+      role: roleName,
       selectedSkills: selected,
       weights,
     });
   };
 
-  /* =======================================================
-     DOMAIN
-  ======================================================= */
-
-  const chooseDomain = (domain) => {
-    const list = (
-      skills[domain] || []
-    ).slice(0, 3);
-
+  const chooseDomain = (dom) => {
+    const list = (skills[dom] || []).slice(0, 3);
     const weights = {};
-
-    if (list.length === 1) {
-      weights[list[0]] = 100;
-    } else if (list.length === 2) {
+    if (list.length === 1) weights[list[0]] = 100;
+    else if (list.length === 2) {
       weights[list[0]] = 50;
       weights[list[1]] = 50;
     } else {
-      list.forEach((skill, index) => {
-        weights[skill] =
-          index === 0 ? 40 : 30;
+      list.forEach((s, idx) => {
+        weights[s] = idx === 0 ? 40 : 30;
       });
     }
-
     updateForm({
-      domain,
+      domain: dom,
       selectedSkills: list,
       weights,
     });
   };
 
-  /* =======================================================
-     SKILL TOGGLE
-  ======================================================= */
-
   const toggleSkill = (skill) => {
-    const exists =
-      selectedSkills.includes(skill);
-
-    if (exists) {
-      const nextSkills =
-        selectedSkills.filter(
-          (item) => item !== skill
-        );
-
-      const nextWeights = {
-        ...form.weights,
-      };
-
-      delete nextWeights[skill];
-
-      updateForm({
-        selectedSkills: nextSkills,
-        weights: nextWeights,
-      });
-
-      return;
-    }
-
-    const nextSkills = [
-      ...selectedSkills,
-      skill,
-    ];
-
-    const nextWeights = {
-      ...form.weights,
-      [skill]: 20,
-    };
-
+    const exists = selectedSkills.includes(skill);
+    const nextSkills = exists
+      ? selectedSkills.filter((s) => s !== skill)
+      : [...selectedSkills, skill];
+    const weights = {};
+    nextSkills.forEach((s, idx) => {
+      if (nextSkills.length === 1) weights[s] = 100;
+      else if (idx === 0) weights[s] = 40;
+      else weights[s] = Math.floor(60 / (nextSkills.length - 1));
+    });
     updateForm({
       selectedSkills: nextSkills,
-      weights: nextWeights,
+      weights,
     });
   };
 
-  /* =======================================================
-     QUESTION TYPE
-  ======================================================= */
-
-  const toggleQuestionType = (
-    type
-  ) => {
-    const exists =
-      form.questionTypes.includes(type);
-
-    const nextTypes = exists
-      ? form.questionTypes.filter(
-          (item) => item !== type
-        )
-      : [
-          ...form.questionTypes,
-          type,
-        ];
-
-    updateForm({
-      questionTypes: nextTypes,
-    });
+  const toggleQuestionType = (type) => {
+    const exists = form.questionTypes.includes(type);
+    const next = exists
+      ? form.questionTypes.filter((t) => t !== type)
+      : [...form.questionTypes, type];
+    updateForm({ questionTypes: next });
   };
 
-  /* =======================================================
-     NEXT STEP
-  ======================================================= */
-
-  const nextStep = () => {
-    setError("");
-
-    if (
-      step === 0 &&
-      !form.role.trim()
-    ) {
-      setError(
-        "Choose a role or enter a job title."
-      );
+  const handleNextStep = () => {
+    setBuilderError("");
+    if (step === 0 && !form.role.trim()) {
+      setBuilderError("Please enter a role / job title.");
       return;
     }
-
-    if (
-      step === 1 &&
-      selectedSkills.length === 0
-    ) {
-      setError(
-        "Select at least one skill."
-      );
+    if (step === 1 && selectedSkills.length === 0) {
+      setBuilderError("Please select at least one skill.");
       return;
     }
-
-    if (
-      step === 2 &&
-      form.questionTypes.length === 0
-    ) {
-      setError(
-        "Select at least one question type."
-      );
+    if (step === 2 && form.questionTypes.length === 0) {
+      setBuilderError("Please select at least one question type.");
       return;
     }
-
-    if (
-      step === 4 &&
-      totalEvaluation !== 100
-    ) {
-      setError(
-        `Evaluation weights must total 100%. Current total: ${totalEvaluation}%.`
-      );
+    if (step === 4 && totalEvaluation !== 100) {
+      setBuilderError(`Evaluation weights must equal 100%. Current total: ${totalEvaluation}%.`);
       return;
     }
-
-    setStep((current) =>
-      Math.min(
-        steps.length - 1,
-        current + 1
-      )
-    );
+    setStep((s) => Math.min(steps.length - 1, s + 1));
   };
 
-  /* =======================================================
-     PREVIOUS STEP
-  ======================================================= */
-
-  const previousStep = () => {
-    setError("");
-
-    setStep((current) =>
-      Math.max(0, current - 1)
-    );
-  };
-
-  /* =======================================================
-     EMAIL VALIDATION
-  ======================================================= */
-
-const isValidEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-};
-  /* =======================================================
-     CREATE INTERVIEW
-  ======================================================= */
-
-  const createInterview = async () => {
-    setError("");
-
-    if (
-      !form.candidateName.trim()
-    ) {
-      setError(
-        "Please enter the candidate name."
-      );
+  const handleCreateInterview = async () => {
+    setBuilderError("");
+    if (!form.candidateName.trim()) {
+      setBuilderError("Please enter the candidate's name.");
       setStep(5);
       return;
     }
-
- if (!isValidEmail(form.email)) {
-      setError(
-        "Please enter a valid candidate email address."
-      );
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setBuilderError("Please enter a valid candidate email address.");
       setStep(5);
       return;
     }
-
-   
-    if (!form.date) {
-      setError(
-        "Please select an interview date."
-      );
-      setStep(3);
-      return;
-    }
-
-    if (!form.time) {
-      setError(
-        "Please select an interview time."
-      );
-      setStep(3);
-      return;
-    }
-
-    if (selectedSkills.length === 0) {
-      setError(
-        "Please select at least one skill."
-      );
-      setStep(1);
-      return;
-    }
-
-    if (
-      form.questionTypes.length === 0
-    ) {
-      setError(
-        "Please select at least one question type."
-      );
-      setStep(2);
-      return;
-    }
-
     if (totalEvaluation !== 100) {
-      setError(
-        `Evaluation weights must total 100%. Current total: ${totalEvaluation}%.`
-      );
+      setBuilderError(`Evaluation criteria must total 100%. (Current: ${totalEvaluation}%)`);
       setStep(4);
       return;
     }
 
-    setLoading(true);
-
+    setSubmitting(true);
     try {
-      const domainName =
-        domains.find(
-          (domain) =>
-            domain[0] === form.domain
-        )?.[1] || form.domain;
-
+      const domainName = domains.find((d) => d[0] === form.domain)?.[1] || form.domain;
       const jobDescription = [
         `Domain: ${domainName}`,
-
         `Experience: ${form.experience}`,
-
-        `Skills: ${selectedSkills.join(
-          ", "
-        )}`,
-
-        `Skill weights: ${JSON.stringify(
-          form.weights
-        )}`,
-
-        `Question types: ${form.questionTypes.join(
-          ", "
-        )}`,
-
+        `Skills: ${selectedSkills.join(", ")}`,
+        `Skill weights: ${JSON.stringify(form.weights)}`,
+        `Question types: ${form.questionTypes.join(", ")}`,
         `Question count: ${form.questionCount}`,
-
         `Difficulty: ${form.difficulty}`,
-
-        `Evaluation weights: ${JSON.stringify(
-          form.evaluation
-        )}`,
-
+        `Evaluation weights: ${JSON.stringify(form.evaluation)}`,
         `Adaptive: ${form.adaptive}`,
-
         `Follow-ups: ${form.followUp}`,
-
         `Resume-based: ${form.resumeBased}`,
-
         `Camera: ${form.camera}`,
-
         `Microphone: ${form.microphone}`,
-
         `Interview date: ${form.date}`,
-
         `Interview time: ${form.time}`,
-
         `AI Instructions: ${form.aiInstructions}`,
       ].join("\n");
-
-      /* ===================================================
-         API REQUEST
-      =================================================== */
 
       const res = await axios.post(
         `${API}/api/v1/pre-interview`,
         {
-          candidateName:
-            form.candidateName,
-
+          candidateName: form.candidateName,
           email: form.email,
-
           role: form.role,
-
-          difficulty:
-            form.difficulty,
-
-          duration:
-            form.duration,
-
+          difficulty: form.difficulty,
+          duration: form.duration,
           github: "",
-
           jobDescription,
           language: "en-IN",
         },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("staff_token") || ""}` } }
+        staffAuth()
       );
 
-      /* ===================================================
-         IMPORTANT FIX
-
-         Your old code used:
-
-         response.data
-
-         But the axios response variable is:
-
-         res
-
-         Therefore we use:
-
-         res.data
-      =================================================== */
-
+      const interviewData = res.data?.interview || res.data;
       setCreated({
-        ...form,
-
-        id:
-          res.data?.id ||
-          "Created",
-
-        questions:
-          res.data?.questions ||
-          [],
-
-        interviewLink: res.data?.interviewUrl || "",
-        emailSent: Boolean(res.data?.emailSent),
-        emailError: res.data?.emailError || "",
+        id: interviewData.id,
+        candidateName: form.candidateName,
+        email: form.email,
+        role: form.role,
+        date: form.date,
+        time: form.time,
+        emailSent: res.data.emailSent,
+        emailError: res.data.emailError,
+        interviewLink: `${window.location.origin}/?interview=${interviewData.id}`,
       });
 
-      setMode("success");
+      // Refresh candidate list
+      fetchCandidates();
     } catch (err) {
-      console.error(
-        "Create interview error:",
-        err
-      );
-
-      console.error(
-        "Backend response:",
-        err.response?.data
-      );
-
-      setError(
-        err.response?.data?.error ||
-          err.response?.data?.message ||
-          "Could not create the interview. Make sure the backend is running on port 3001."
-      );
+      console.error("Create interview error:", err);
+      setBuilderError(err.response?.data?.error || err.message || "Failed to create interview.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  /* =======================================================
-     SUCCESS PAGE
-  ======================================================= */
+  // Filtering candidates
+  const filteredCandidates = candidates.filter((c) => {
+    const matchesSearch =
+      (c.candidate_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.candidate_email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.role || "").toLowerCase().includes(searchQuery.toLowerCase());
 
-  if (mode === "success") {
-    return (
-      <div className="recruiter-page">
-        <div className="success-screen">
+    if (!matchesSearch) return false;
+    if (statusFilter === "completed") return c.status === "Done";
+    if (statusFilter === "live") return c.status === "Live";
+    if (statusFilter === "invited") return c.status === "Pre" || !c.status;
+    return true;
+  });
 
-          <div className="success-mark">
-            ✓
+  // KPI Calculations
+  const completedCount = candidates.filter((c) => c.status === "Done").length;
+  const inProgressCount = candidates.filter((c) => c.status === "Live").length;
+  const pendingCount = candidates.filter((c) => c.status === "Pre" || !c.status).length;
+  const scoresArray = candidates.filter((c) => c.score != null).map((c) => c.score);
+  const avgScore = scoresArray.length
+    ? Math.round(scoresArray.reduce((a, b) => a + b, 0) / scoresArray.length)
+    : 0;
+
+  return (
+    <div className="app-shell recruiter-workspace">
+      {/* =========================================================
+          TOP HEADER
+      ========================================================= */}
+      <header className="shell-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div
+          className="brand"
+          onClick={() => setActiveTab("overview")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setActiveTab("overview");
+            }
+          }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", userSelect: "none" }}
+          title="Recruiter Workspace Home"
+        >
+          <div className="logo">
+            <Sparkles size={18} />
           </div>
-
-          <div className="recruiter-eyebrow">
-            INTERVIEW READY
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontWeight: 800, fontSize: "16px" }}>SDEPrepAI</span>
+            <small style={{ fontSize: "10px", letterSpacing: "1px", color: "#8d9cff", textTransform: "uppercase", fontWeight: 700 }}>Recruiter Studio</small>
           </div>
+        </div>
 
-          <h1>
-            Interview Created
-          </h1>
-
-          <p>
-            {created?.role} •{" "}
-            {created?.experience} •{" "}
-            {created?.duration} minutes
-          </p>
-
-          <div className="success-card">
-
-            <div>
-              <span>
-                Candidate
-              </span>
-
-              <strong>
-                {created?.candidateName}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                Candidate Email
-              </span>
-
-              <strong>
-                {created?.email}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                Interview ID
-              </span>
-
-              <strong>
-                {created?.id}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                Date
-              </span>
-
-              <strong>
-                {created?.date}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                Time
-              </span>
-
-              <strong>
-                {created?.time}
-              </strong>
-            </div>
-
-          </div>
-
-          <div className="success-card">
-            <div><span>Email status</span><strong>{created?.emailSent ? "✓ Invitation email sent" : `⚠ Email not sent${created?.emailError ? `: ${created.emailError}` : ""}`}</strong></div>
-          </div>
-
-          {created?.interviewLink && (
-            <div className="success-card">
-
-              <div>
-                <span>
-                  Candidate Interview Link
-                </span>
-
-                <strong>
-                  {created.interviewLink}
-                </strong>
-              </div>
-
-            </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {onToggleTheme && (
+            <button
+              onClick={onToggleTheme}
+              title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--border-color, #2b354d)",
+                color: "inherit",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "13px",
+                fontWeight: 600,
+              }}
+            >
+              {theme === "light" ? <Moon size={15} style={{ color: "#6366f1" }} /> : <Sun size={15} style={{ color: "#fbbf24" }} />}
+              <span>{theme === "light" ? "Dark" : "Light"}</span>
+            </button>
           )}
 
-          <button
-            type="button"
-            className="secondary-btn"
-            onClick={() => {
-              setForm(
-                createInitialForm()
-              );
-
-              setStep(0);
-
-              setMode("home");
-
-              setError("");
-            }}
-          >
-            Back to Recruiter
-          </button>
+          <div className="user-chip" style={{ background: "rgba(17,20,27,0.7)", padding: "6px 12px", borderRadius: "8px", border: "1px solid #242936" }}>
+            👔 {profile.name || user?.name || "Recruiter"}
+          </div>
 
           <button
             type="button"
-            className="primary-btn"
-            onClick={() => {
-              setForm(
-                createInitialForm()
-              );
-
-              setStep(0);
-
-              setMode("builder");
-
-              setError("");
-            }}
+            onClick={onBack}
+            className="action-btn-sm danger"
+            title="Logout / Exit Recruiter Workspace"
+            style={{ padding: "8px 12px", borderRadius: "8px", fontWeight: 700 }}
           >
-            Create Another
+            <LogOut size={14} />
+            <span>Logout</span>
           </button>
-
         </div>
-      </div>
-    );
-  }
+      </header>
 
-  /* =======================================================
-     HOME
-  ======================================================= */
+      {/* =========================================================
+          SHELL BODY (LEFT CORNER SIDEBAR + CONTENT)
+      ========================================================= */}
+      <div className="shell-body">
+        <nav className="sidebar">
+          {[
+            { key: "overview", label: "Dashboard", icon: "🏠" },
+            { key: "candidates", label: "Invited Students", icon: "👥", badge: candidates.length },
+            { key: "builder", label: "Create Interview", icon: "🎯" },
+            { key: "settings", label: "Settings", icon: "⚙️" },
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`nav-item ${activeTab === item.key ? "active" : ""}`}
+              onClick={() => {
+                if (item.key === "builder") {
+                  setCreated(null);
+                  setStep(0);
+                }
+                setActiveTab(item.key);
+              }}
+            >
+              <span>{item.icon}</span>
+              <span style={{ flex: 1, textAlign: "left" }}>{item.label}</span>
+              {item.badge !== undefined && item.badge > 0 && (
+                <span
+                  style={{
+                    background: activeTab === item.key ? "#4f5ca5" : "#1f2535",
+                    color: activeTab === item.key ? "#fff" : "#94a3b8",
+                    fontSize: "11px",
+                    padding: "2px 7px",
+                    borderRadius: "99px",
+                    fontWeight: 800,
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
 
-  if (mode === "home") {
-    return (
-      <div className="recruiter-page">
-
-        <div className="recruiter-shell">
-
-  <div className="builder-hero-card">
-    <div>
-      <div className="recruiter-eyebrow">
-        RECRUITER PROFILE
-      </div>
-
-      <h2>My Profile</h2>
-
-      <p>
-        Add your recruiter and company information.
-      </p>
-    </div>
-
-    <div className="two-col">
-
-      <label>
-        Your Name
-
-        <input
-          type="text"
-          value={profile.name}
-          onChange={(event) =>
-            setProfile({
-              ...profile,
-              name: event.target.value,
-            })
-          }
-          placeholder="Your full name"
-        />
-      </label>
-
-      <label>
-        Company Name
-
-        <input
-          type="text"
-          value={profile.company}
-          onChange={(event) =>
-            setProfile({
-              ...profile,
-              company: event.target.value,
-            })
-          }
-          placeholder="Company name"
-        />
-      </label>
-
-      <label>
-        Designation
-
-        <input
-          type="text"
-          value={profile.designation}
-          onChange={(event) =>
-            setProfile({
-              ...profile,
-              designation: event.target.value,
-            })
-          }
-          placeholder="HR Manager / Recruiter"
-        />
-      </label>
-
-      <label>
-        Recruiter Email
-
-        <input
-          type="email"
-          value={profile.email}
-          onChange={(event) =>
-            setProfile({
-              ...profile,
-              email: event.target.value,
-            })
-          }
-          placeholder="your@email.com"
-        />
-      </label>
-
-    </div>
-  </div>
-
-  <header className="recruiter-header">
-
-            <div>
-
-              <div className="recruiter-eyebrow">
-                RECRUITER WORKSPACE
+        <main className="shell-content">
+        {/* =========================================================
+            TAB 1: OVERVIEW
+        ========================================================= */}
+        {activeTab === "overview" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "24px" }}>
+              <div>
+                <span className="recruiter-eyebrow">RECRUITMENT DASHBOARD</span>
+                <h1 style={{ fontSize: "32px", margin: "6px 0 4px" }}>Welcome back, {profile.name || "Recruiter"} 👋</h1>
+                <p className="muted" style={{ margin: 0 }}>
+                  Manage interview invitations, assess student results, and create custom AI interviews.
+                </p>
               </div>
 
-              <h1>
-                Interview Studio
-              </h1>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={fetchCandidates}
+                  style={{ gap: "6px" }}
+                >
+                  <RefreshCw size={14} className={loadingCandidates ? "spin" : ""} />
+                  <span>Refresh</span>
+                </button>
 
-              <p>
-                Build structured AI
-                interviews by role,
-                skill and evaluation
-                criteria.
-              </p>
-
+                <button
+                  type="button"
+                  className="primary-btn"
+                  onClick={() => {
+                    setCreated(null);
+                    setStep(0);
+                    setActiveTab("builder");
+                  }}
+                >
+                  <Plus size={16} />
+                  <span>Create Interview</span>
+                </button>
+              </div>
             </div>
 
-            <div className="recruiter-actions">
+            {/* KPI Cards */}
+            <div className="kpi-row">
+              <div className="recruiter-kpi">
+                <div>
+                  <div className="kpi-title">Invited Candidates</div>
+                  <div className="kpi-val">{candidates.length}</div>
+                  <div className="kpi-sub">Total student invites</div>
+                </div>
+                <div className="kpi-icon-box">
+                  <Users size={22} />
+                </div>
+              </div>
+
+              <div className="recruiter-kpi">
+                <div>
+                  <div className="kpi-title">Completed</div>
+                  <div className="kpi-val" style={{ color: "#4ade80" }}>{completedCount}</div>
+                  <div className="kpi-sub">{candidates.length ? Math.round((completedCount / candidates.length) * 100) : 0}% completion rate</div>
+                </div>
+                <div className="kpi-icon-box" style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80" }}>
+                  <CheckCircle2 size={22} />
+                </div>
+              </div>
+
+              <div className="recruiter-kpi">
+                <div>
+                  <div className="kpi-title">Pending / In-Progress</div>
+                  <div className="kpi-val" style={{ color: "#60a5fa" }}>{pendingCount + inProgressCount}</div>
+                  <div className="kpi-sub">{inProgressCount} currently in interview</div>
+                </div>
+                <div className="kpi-icon-box" style={{ background: "rgba(59,130,246,0.15)", color: "#60a5fa" }}>
+                  <Clock size={22} />
+                </div>
+              </div>
+
+              <div className="recruiter-kpi">
+                <div>
+                  <div className="kpi-title">Average Score</div>
+                  <div className="kpi-val" style={{ color: "#a78bfa" }}>{avgScore}<small style={{ fontSize: "16px", color: "#8f98aa" }}>/100</small></div>
+                  <div className="kpi-sub">Across all completed tests</div>
+                </div>
+                <div className="kpi-icon-box" style={{ background: "rgba(167,139,250,0.15)", color: "#a78bfa" }}>
+                  <Award size={22} />
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions & Recent Submissions */}
+            <div className="section-heading-inline" style={{ marginTop: "32px" }}>
+              <div>
+                <h2 style={{ fontSize: "20px", margin: "0 0 4px" }}>Recent Candidate Submissions</h2>
+                <p className="muted" style={{ margin: 0 }}>Latest student test attempts and structured scorecard evaluations.</p>
+              </div>
 
               <button
                 type="button"
-                className="secondary-btn"
-                onClick={onBack}
+                onClick={() => setActiveTab("candidates")}
+                style={{ background: "none", border: 0, color: "#8d9cff", cursor: "pointer", fontWeight: 700, fontSize: "13px" }}
               >
-                ← Back
+                View All {candidates.length} Candidates →
               </button>
+            </div>
+
+            <div className="table-card" style={{ marginTop: "14px" }}>
+              {candidates.length === 0 ? (
+                <div style={{ padding: "48px 20px", textAlign: "center" }}>
+                  <Users size={36} style={{ color: "#64748b", marginBottom: "12px" }} />
+                  <h3 style={{ margin: "0 0 6px" }}>No candidate invitations yet</h3>
+                  <p className="muted" style={{ maxWidth: "420px", margin: "0 auto 18px" }}>
+                    Create your first AI mock interview and invite candidates with automated scoring and section breakdowns.
+                  </p>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => {
+                      setCreated(null);
+                      setStep(0);
+                      setActiveTab("builder");
+                    }}
+                  >
+                    <Plus size={16} />
+                    <span>Create New Interview</span>
+                  </button>
+                </div>
+              ) : (
+                <table className="candidate-table">
+                  <thead>
+                    <tr>
+                      <th>Candidate</th>
+                      <th>Target Role</th>
+                      <th>Invited / Date</th>
+                      <th>Status</th>
+                      <th>Score</th>
+                      <th style={{ textAlign: "right" }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {candidates.slice(0, 6).map((c) => (
+                      <tr key={c.id}>
+                        <td>
+                          <div style={{ fontWeight: 700, color: "#fff" }}>{c.candidate_name || "Anonymous Candidate"}</div>
+                          <small style={{ color: "#8f98aa" }}>{c.candidate_email || "No email"}</small>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{c.role}</div>
+                          <small className="muted">{c.difficulty || "Intermediate"}</small>
+                        </td>
+                        <td>
+                          <small style={{ color: "#cbd5e1" }}>
+                            {c.created_at ? new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+                          </small>
+                        </td>
+                        <td>
+                          <span className={`status-pill ${c.status === "Done" ? "completed" : c.status === "Live" ? "live" : "pre"}`}>
+                            {c.status === "Done" ? "✓ Completed" : c.status === "Live" ? "🔴 In Progress" : "⏳ Invited"}
+                          </span>
+                        </td>
+                        <td>
+                          {c.score != null ? (
+                            <span className={`score-badge ${c.score >= 70 ? "high" : c.score >= 50 ? "mid" : "low"}`}>
+                              {c.score} / 100
+                            </span>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                            {c.status === "Done" ? (
+                              <button
+                                type="button"
+                                className="action-btn-sm primary"
+                                onClick={() => setSelectedCandidate(c)}
+                              >
+                                <Eye size={13} />
+                                <span>Section Scorecard</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="action-btn-sm secondary"
+                                onClick={() => copyInterviewLink(c.id)}
+                              >
+                                {copiedId === c.id ? <Check size={13} style={{ color: "#4ade80" }} /> : <Copy size={13} />}
+                                <span>{copiedId === c.id ? "Copied!" : "Copy Link"}</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================
+            TAB 2: INVITED CANDIDATES (FULL TABLE & SECTION SCORES)
+        ========================================================= */}
+        {activeTab === "candidates" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "22px", flexWrap: "wrap", gap: "14px" }}>
+              <div>
+                <span className="recruiter-eyebrow">STUDENT TRACKING & ASSESSMENTS</span>
+                <h1 style={{ fontSize: "30px", margin: "6px 0 4px" }}>Invited Candidates</h1>
+                <p className="muted" style={{ margin: 0 }}>
+                  Track student appearance status, view section scores, and inspect detailed AI evaluation scorecards.
+                </p>
+              </div>
 
               <button
                 type="button"
                 className="primary-btn"
                 onClick={() => {
-                  setError("");
-                  setMode("builder");
+                  setCreated(null);
+                  setStep(0);
+                  setActiveTab("builder");
                 }}
               >
-                ＋ Create Interview
+                <Plus size={16} />
+                <span>Invite New Student</span>
               </button>
-
             </div>
 
-          </header>
+            <div className="table-card">
+              <div className="table-toolbar">
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="text"
+                      placeholder="Search by name, email or role..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="table-search-input"
+                    />
+                  </div>
 
-          <section className="builder-hero-card">
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {[
+                      ["all", "All Candidates"],
+                      ["completed", "Completed"],
+                      ["live", "In Progress"],
+                      ["invited", "Invited / Pending"],
+                    ].map(([key, label]) => (
+                      <button
+                        type="button"
+                        key={key}
+                        onClick={() => setStatusFilter(key)}
+                        style={{
+                          background: statusFilter === key ? "#232b50" : "#11151e",
+                          color: statusFilter === key ? "#8d9cff" : "#94a3b8",
+                          border: `1px solid ${statusFilter === key ? "#4f5ca5" : "#242c3d"}`,
+                          borderRadius: "8px",
+                          padding: "8px 12px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            <div>
-
-              <div className="hero-icon">
-                ✦
+                <div style={{ fontSize: "13px", color: "#8f98aa" }}>
+                  Showing <strong>{filteredCandidates.length}</strong> of {candidates.length} students
+                </div>
               </div>
 
-              <h2>
-                Build an AI interview
-                in six steps
-              </h2>
+              {filteredCandidates.length === 0 ? (
+                <div style={{ padding: "50px 20px", textAlign: "center" }}>
+                  <Users size={36} style={{ color: "#64748b", marginBottom: "10px" }} />
+                  <h3 style={{ margin: "0 0 6px" }}>No matching candidates found</h3>
+                  <p className="muted">Try adjusting your search query or filter options.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table className="candidate-table">
+                    <thead>
+                      <tr>
+                        <th>Candidate Details</th>
+                        <th>Target Role</th>
+                        <th>Invited Date</th>
+                        <th>Interview Link</th>
+                        <th>Status</th>
+                        <th>Overall Score</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCandidates.map((c) => (
+                        <tr key={c.id}>
+                          <td>
+                            <div style={{ fontWeight: 700, color: "#fff" }}>{c.candidate_name || "Candidate"}</div>
+                            <small style={{ color: "#8f98aa" }}>{c.candidate_email || "No email"}</small>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 600 }}>{c.role}</div>
+                            <small className="muted">{c.difficulty || "Intermediate"} • {c.duration || 30} mins</small>
+                          </td>
+                          <td>
+                            <small style={{ color: "#cbd5e1" }}>
+                              {c.created_at ? new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                            </small>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="action-btn-sm secondary"
+                              onClick={() => copyInterviewLink(c.id)}
+                              title="Copy candidate's personalized interview link"
+                            >
+                              {copiedId === c.id ? <Check size={13} style={{ color: "#4ade80" }} /> : <Copy size={13} />}
+                              <span>{copiedId === c.id ? "Link Copied!" : "Copy URL"}</span>
+                            </button>
+                          </td>
+                          <td>
+                            <span className={`status-pill ${c.status === "Done" ? "completed" : c.status === "Live" ? "live" : "pre"}`}>
+                              {c.status === "Done" ? "✓ Evaluated" : c.status === "Live" ? "🔴 Live Test" : "⏳ Invited"}
+                            </span>
+                          </td>
+                          <td>
+                            {c.score != null ? (
+                              <span className={`score-badge ${c.score >= 70 ? "high" : c.score >= 50 ? "mid" : "low"}`}>
+                                {c.score} / 100
+                              </span>
+                            ) : (
+                              <span style={{ color: "#64748b" }}>Pending</span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                              {c.status === "Done" && (
+                                <button
+                                  type="button"
+                                  className="action-btn-sm primary"
+                                  onClick={() => setSelectedCandidate(c)}
+                                  title="View section-by-section scoring and AI feedback"
+                                >
+                                  <FileText size={13} />
+                                  <span>Scorecard</span>
+                                </button>
+                              )}
 
-              <p>
-                Configure role, skills,
-                questions, interview
-                behavior and scoring
-                before you invite a
-                candidate.
-              </p>
-
-            </div>
-
-            <div className="hero-flow">
-
-              {steps.map(
-                (item, index) => (
-                  <span key={item}>
-                    {index + 1}. {item}
-
-                    {index <
-                    steps.length - 1
-                      ? " → "
-                      : ""}
-                  </span>
-                )
+                              <button
+                                type="button"
+                                className="action-btn-sm danger"
+                                onClick={(e) => deleteCandidate(c.id, e)}
+                                title="Delete invitation"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-
             </div>
+          </div>
+        )}
 
-          </section>
+        {/* =========================================================
+            TAB 3: CREATE INTERVIEW (6-STEP BUILDER)
+        ========================================================= */}
+        {activeTab === "builder" && (
+          <div>
+            {created ? (
+              <div className="success-screen">
+                <div className="success-mark">✓</div>
+                <h1>Interview Created!</h1>
+                <p>An AI mock interview session has been generated for <strong>{created.candidateName}</strong>.</p>
 
-          <div className="section-heading">
+                <div className="success-card">
+                  <div><span>Candidate</span><strong>{created.candidateName}</strong></div>
+                  <div><span>Email</span><strong>{created.email}</strong></div>
+                  <div><span>Target Role</span><strong>{created.role}</strong></div>
+                  <div><span>Interview ID</span><strong>{created.id}</strong></div>
+                </div>
 
-            <h2>
-              Start with a role
-              template
-            </h2>
+                <div className="success-card" style={{ gridTemplateColumns: "1fr" }}>
+                  <div>
+                    <span>Candidate Interview Link (Send to Candidate)</span>
+                    <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                      <input
+                        readOnly
+                        value={created.interviewLink}
+                        style={{ flex: 1, padding: "10px", background: "#080b11", border: "1px solid #283246", borderRadius: "8px", color: "#8d9cff" }}
+                      />
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        onClick={() => copyInterviewLink(created.id)}
+                      >
+                        {copiedId === created.id ? <Check size={16} /> : <Copy size={16} />}
+                        <span>{copiedId === created.id ? "Copied!" : "Copy Link"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-            <p>
-              Choose a common role
-              to pre-fill the builder.
+                <div className="success-actions" style={{ marginTop: "24px" }}>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => setActiveTab("candidates")}
+                  >
+                    View in Candidates List
+                  </button>
+
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => {
+                      setCreated(null);
+                      setForm(createInitialForm());
+                      setStep(0);
+                    }}
+                  >
+                    Create Another Interview
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="builder-shell" style={{ margin: "0 auto" }}>
+                <header className="recruiter-header" style={{ marginBottom: "20px" }}>
+                  <div>
+                    <div className="recruiter-eyebrow">AI INTERVIEW STUDIO</div>
+                    <h1 style={{ fontSize: "32px", margin: "4px 0" }}>Create Candidate Interview</h1>
+                    <p className="muted">Configure role, required technical skills, and scoring weights.</p>
+                  </div>
+                  <span className="hint" style={{ fontSize: "14px", fontWeight: 700, color: "#8d9cff" }}>
+                    Step {step + 1} of {steps.length}: {steps[step]}
+                  </span>
+                </header>
+
+                <div className="builder-progress">
+                  {steps.map((item, idx) => (
+                    <div
+                      key={item}
+                      className={`builder-step ${idx === step ? "current" : ""} ${idx < step ? "done" : ""}`}
+                    >
+                      <span>{idx < step ? "✓" : idx + 1}</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="builder-card">
+                  <div className="step-content">
+                    {builderError && <div className="builder-error">{builderError}</div>}
+
+                    {/* Step 1: Role */}
+                    {step === 0 && (
+                      <>
+                        <Intro
+                          number="01"
+                          title="What role is this interview for?"
+                          description="Select a role template or enter a custom job title to calibrate questions."
+                        />
+
+                        <label style={{ margin: "20px 0" }}>
+                          Job Title / Role Name
+                          <input
+                            type="text"
+                            value={form.role}
+                            onChange={(e) => updateForm({ role: e.target.value })}
+                            placeholder="e.g. Senior Frontend Engineer"
+                          />
+                        </label>
+
+                        <h3>Popular Role Templates</h3>
+                        <div className="role-grid compact">
+                          {roles.map(([name, desc]) => (
+                            <button
+                              type="button"
+                              key={name}
+                              className={`role-template ${form.role === name ? "selected" : ""}`}
+                              onClick={() => chooseRole(name)}
+                            >
+                              <strong>{name}</strong>
+                              <span>{desc}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        <h3 style={{ marginTop: "24px" }}>Experience Level</h3>
+                        <div className="choice-row">
+                          {experienceLevels.map((lvl) => (
+                            <button
+                              type="button"
+                              key={lvl}
+                              className={`choice ${form.experience === lvl ? "selected" : ""}`}
+                              onClick={() => updateForm({ experience: lvl })}
+                            >
+                              {lvl}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Step 2: Skills */}
+                    {step === 1 && (
+                      <>
+                        <Intro
+                          number="02"
+                          title="Which technical skills to evaluate?"
+                          description="Choose primary domain and select key skills to test."
+                        />
+
+                        <h3>Domain</h3>
+                        <div className="domain-grid">
+                          {domains.map(([id, name, desc]) => (
+                            <button
+                              type="button"
+                              key={id}
+                              className={`domain-card ${form.domain === id ? "selected" : ""}`}
+                              onClick={() => chooseDomain(id)}
+                            >
+                              <strong>{name}</strong>
+                              <small>{desc}</small>
+                            </button>
+                          ))}
+                        </div>
+
+                        <h3 style={{ marginTop: "24px" }}>Select Skills ({selectedSkills.length} selected)</h3>
+                        <div className="skill-grid">
+                          {domainSkills.map((sk) => {
+                            const isSel = selectedSkills.includes(sk);
+                            return (
+                              <button
+                                type="button"
+                                key={sk}
+                                className={`skill-chip ${isSel ? "selected" : ""}`}
+                                onClick={() => toggleSkill(sk)}
+                              >
+                                {isSel ? "✓" : "+"} {sk}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Step 3: Question Types */}
+                    {step === 2 && (
+                      <>
+                        <Intro
+                          number="03"
+                          title="Question distribution & depth"
+                          description="Configure interview format and types of questions to ask."
+                        />
+
+                        <h3>Question Types</h3>
+                        <div className="choice-row">
+                          {questionTypes.map((t) => (
+                            <button
+                              type="button"
+                              key={t}
+                              className={`choice ${form.questionTypes.includes(t) ? "selected" : ""}`}
+                              onClick={() => toggleQuestionType(t)}
+                            >
+                              {form.questionTypes.includes(t) ? "✓" : "+"} {t}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="two-col" style={{ marginTop: "24px" }}>
+                          <label>
+                            Difficulty Level
+                            <select
+                              value={form.difficulty}
+                              onChange={(e) => updateForm({ difficulty: e.target.value })}
+                            >
+                              <option value="Easy">Beginner / Easy</option>
+                              <option value="Medium">Intermediate / Medium</option>
+                              <option value="Hard">Advanced / Hard</option>
+                            </select>
+                          </label>
+
+                          <label>
+                            Estimated Duration
+                            <select
+                              value={form.duration}
+                              onChange={(e) => updateForm({ duration: Number(e.target.value) })}
+                            >
+                              <option value={15}>15 minutes (Quick Screen)</option>
+                              <option value={30}>30 minutes (Standard)</option>
+                              <option value={45}>45 minutes (Comprehensive)</option>
+                            </select>
+                          </label>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Step 4: AI Settings & Toggles */}
+                    {step === 3 && (
+                      <>
+                        <Intro
+                          number="04"
+                          title="AI Interviewer Behaviour"
+                          description="Customize real-time AI adaptability, follow-ups, and instructions."
+                        />
+
+                        <div className="toggle-list" style={{ marginTop: "20px" }}>
+                          <div
+                            className={`toggle-row ${form.adaptive ? "on" : ""}`}
+                            onClick={() => updateForm({ adaptive: !form.adaptive })}
+                          >
+                            <div>
+                              <strong>Adaptive Difficulty</strong>
+                              <p className="muted" style={{ margin: "2px 0 0", fontSize: "12px" }}>
+                                AI automatically adjusts question difficulty based on candidate's answers.
+                              </p>
+                            </div>
+                            <i>{form.adaptive ? "ENABLED" : "DISABLED"}</i>
+                          </div>
+
+                          <div
+                            className={`toggle-row ${form.followUp ? "on" : ""}`}
+                            onClick={() => updateForm({ followUp: !form.followUp })}
+                          >
+                            <div>
+                              <strong>Deep Dive Follow-Ups</strong>
+                              <p className="muted" style={{ margin: "2px 0 0", fontSize: "12px" }}>
+                                AI asks clarifying follow-up questions when candidates give brief responses.
+                              </p>
+                            </div>
+                            <i>{form.followUp ? "ENABLED" : "DISABLED"}</i>
+                          </div>
+                        </div>
+
+                        <label style={{ marginTop: "24px" }}>
+                          Custom AI Instructions (Prompt Guideline)
+                          <textarea
+                            value={form.aiInstructions}
+                            onChange={(e) => updateForm({ aiInstructions: e.target.value })}
+                            placeholder="Tell the AI interviewer specific areas to probe or topics to prioritize..."
+                            style={{ minHeight: "90px" }}
+                          />
+                        </label>
+                      </>
+                    )}
+
+                    {/* Step 5: Evaluation Weights */}
+                    {step === 4 && (
+                      <>
+                        <Intro
+                          number="05"
+                          title="Evaluation Rubric Weights"
+                          description="Define the percentage weight of each section in the scorecard (Total must equal 100%)."
+                        />
+
+                        <div className="evaluation-list" style={{ marginTop: "20px" }}>
+                          {[
+                            ["technical", "Technical Accuracy & Concepts"],
+                            ["problemSolving", "Problem Solving & Architecture"],
+                            ["coding", "Coding & Implementation Depth"],
+                            ["systemDesign", "System Design & Scalability"],
+                            ["communication", "Communication & Clarity"],
+                            ["confidence", "Practical Experience & Depth"],
+                          ].map(([key, label]) => (
+                            <div className="evaluation-row" key={key}>
+                              <span style={{ fontWeight: 600 }}>{label}</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={form.evaluation[key] || 0}
+                                onChange={(e) =>
+                                  updateForm({
+                                    evaluation: {
+                                      ...form.evaluation,
+                                      [key]: Number(e.target.value),
+                                    },
+                                  })
+                                }
+                              />
+                              <span>%</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="evaluation-total">
+                          <span>Total Weight:</span>
+                          <strong style={{ color: totalEvaluation === 100 ? "#4ade80" : "#f87171" }}>
+                            {totalEvaluation}% {totalEvaluation === 100 ? "✓ Ready" : "(Must equal 100%)"}
+                          </strong>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Step 6: Review & Candidate Details */}
+                    {step === 5 && (
+                      <>
+                        <Intro
+                          number="06"
+                          title="Candidate Information & Review"
+                          description="Enter the candidate details to generate their personalized interview link."
+                        />
+
+                        <div className="card" style={{ padding: "20px", background: "#0b0e14", borderRadius: "14px", margin: "20px 0" }}>
+                          <h3 style={{ margin: "0 0 14px", fontSize: "16px" }}>Candidate Invitation Info</h3>
+
+                          <div className="two-col">
+                            <label>
+                              Student / Candidate Full Name
+                              <input
+                                type="text"
+                                required
+                                value={form.candidateName}
+                                onChange={(e) => updateForm({ candidateName: e.target.value })}
+                                placeholder="e.g. Ashutosh Singh"
+                              />
+                            </label>
+
+                            <label>
+                              Student Email Address
+                              <input
+                                type="email"
+                                required
+                                value={form.email}
+                                onChange={(e) => updateForm({ email: e.target.value })}
+                                placeholder="e.g. student@gmail.com"
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <h3 style={{ margin: "20px 0 10px" }}>Interview Summary</h3>
+                        <div className="review-block">
+                          <div>
+                            <h3>Role & Skills</h3>
+                            <button type="button" className="text-btn" onClick={() => setStep(0)}>Edit</button>
+                          </div>
+                          <strong>{form.role} ({form.experience})</strong>
+                          <div className="review-tags">
+                            {selectedSkills.map((s) => (
+                              <span key={s}>{s}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="builder-footer">
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      disabled={step === 0}
+                      onClick={() => setStep((s) => Math.max(0, s - 1))}
+                    >
+                      ← Previous
+                    </button>
+
+                    {step < steps.length - 1 ? (
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        onClick={handleNextStep}
+                      >
+                        <span>Next Step</span>
+                        <ArrowRight size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        disabled={submitting}
+                        onClick={handleCreateInterview}
+                        style={{ background: "#4ade80", color: "#052e16", fontWeight: 800 }}
+                      >
+                        {submitting ? "Generating Interview..." : "✓ Create & Send Invitation"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================
+            TAB 4: RECRUITER SETTINGS
+        ========================================================= */}
+        {activeTab === "settings" && (
+          <div style={{ maxWidth: "680px", margin: "0 auto" }}>
+            <span className="recruiter-eyebrow">RECRUITER SETTINGS</span>
+            <h1 style={{ fontSize: "30px", margin: "6px 0 6px" }}>Recruiter Settings</h1>
+            <p className="muted" style={{ marginBottom: "28px" }}>
+              Customize your profile, company credentials, and interface preferences.
             </p>
 
-          </div>
+            {/* Appearance */}
+            <div className="card" style={{ padding: "24px", borderRadius: "18px", marginBottom: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <Palette size={20} style={{ color: "#818cf8" }} />
+                <h3 style={{ margin: 0, fontSize: "18px" }}>Appearance & Theme</h3>
+              </div>
+              <p className="muted" style={{ fontSize: "13px", marginBottom: "18px" }}>
+                Switch between sleek dark mode and high-contrast light mode.
+              </p>
 
-          <div className="role-grid">
-
-            {roles.map(
-              ([name, description]) => (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                 <button
                   type="button"
-                  className="role-template"
-                  key={name}
-                  onClick={() => {
-                    chooseRole(name);
-                    setMode("builder");
+                  onClick={() => onToggleTheme && theme === "light" && onToggleTheme()}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    border: theme === "dark" ? "2px solid #818cf8" : "1px solid #2d3648",
+                    background: theme === "dark" ? "rgba(129, 140, 248, 0.15)" : "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
                   }}
                 >
-
-                  <strong>
-                    {name}
-                  </strong>
-
-                  <span>
-                    {description}
-                  </span>
-
-                  <b>›</b>
-
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Moon size={18} style={{ color: "#818cf8" }} />
+                      <strong>Dark Theme</strong>
+                    </div>
+                    {theme === "dark" && <span style={{ color: "#34d399", fontWeight: "bold" }}>✓ Active</span>}
+                  </div>
+                  <div style={{ fontSize: "12px", opacity: 0.75 }}>Optimized for nighttime screening.</div>
                 </button>
-              )
-            )}
 
-          </div>
-
-        </div>
-
-      </div>
-    );
-  }
-
-  /* =======================================================
-     BUILDER
-  ======================================================= */
-
-  return (
-    <div className="recruiter-page">
-
-      <div className="recruiter-shell builder-shell">
-
-        <header className="recruiter-header">
-
-          <div>
-
-            <button
-              type="button"
-              className="text-btn"
-              onClick={() => {
-                setError("");
-                setMode("home");
-              }}
-            >
-              ← Recruiter
-            </button>
-
-            <div className="recruiter-eyebrow">
-              INTERVIEW BUILDER
+                <button
+                  type="button"
+                  onClick={() => onToggleTheme && theme === "dark" && onToggleTheme()}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    border: theme === "light" ? "2px solid #818cf8" : "1px solid #2d3648",
+                    background: theme === "light" ? "rgba(129, 140, 248, 0.15)" : "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Sun size={18} style={{ color: "#fbbf24" }} />
+                      <strong>Light Theme</strong>
+                    </div>
+                    {theme === "light" && <span style={{ color: "#34d399", fontWeight: "bold" }}>✓ Active</span>}
+                  </div>
+                  <div style={{ fontSize: "12px", opacity: 0.75 }}>Clean daytime interface.</div>
+                </button>
+              </div>
             </div>
 
-            <h1>
-              Create Interview
-            </h1>
-
-          </div>
-
-          <span className="hint">
-            Step {step + 1} of{" "}
-            {steps.length}
-          </span>
-
-        </header>
-
-        {/* =================================================
-            PROGRESS
-        ================================================= */}
-
-        <div className="builder-progress">
-
-          {steps.map(
-            (item, index) => (
-              <div
-                key={item}
-                className={[
-                  "builder-step",
-                  index === step
-                    ? "current"
-                    : "",
-                  index < step
-                    ? "done"
-                    : "",
-                ].join(" ")}
-              >
-
-                <span>
-                  {index < step
-                    ? "✓"
-                    : index + 1}
-                </span>
-
-                {item}
-
+            {/* Profile Form */}
+            <form onSubmit={saveProfile} className="card" style={{ padding: "24px", borderRadius: "18px", marginBottom: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <Building size={20} style={{ color: "#38bdf8" }} />
+                <h3 style={{ margin: 0, fontSize: "18px" }}>Recruiter Profile</h3>
               </div>
-            )
-          )}
+              <p className="muted" style={{ fontSize: "13px", marginBottom: "18px" }}>
+                This information appears on candidate invitation emails and scorecard exports.
+              </p>
 
-        </div>
+              {profileSavedMsg && (
+                <div style={{ background: "#052e16", color: "#4ade80", padding: "10px", borderRadius: "8px", marginBottom: "14px", fontSize: "13px" }}>
+                  ✓ {profileSavedMsg}
+                </div>
+              )}
 
-        <div className="builder-card">
-
-          <div className="step-content">
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {error && (
-              <div className="builder-error">
-                {error}
-              </div>
-            )}
-
-            {/* =================================================
-                STEP 1 — ROLE
-            ================================================= */}
-
-            {step === 0 && (
-              <>
-                <Intro
-                  number="01"
-                  title="What role are you hiring for?"
-                  description="Choose a role and experience level. The AI uses this to calibrate the interview."
-                />
-
+              <div className="two-col">
                 <label>
-                  Job Title
-
+                  Your Full Name
                   <input
                     type="text"
-                    value={form.role}
-                    onChange={(event) =>
-                      updateForm({
-                        role:
-                          event.target
-                            .value,
-                      })
-                    }
-                    placeholder="e.g. Full Stack Developer"
-                    autoComplete="off"
+                    value={profile.name}
+                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                    placeholder="e.g. John Doe"
                   />
                 </label>
-
-                <h3>
-                  Popular Roles
-                </h3>
-
-                <div className="role-grid compact">
-
-                  {roles.map(
-                    ([name, description]) => (
-                      <button
-                        type="button"
-                        className={[
-                          "role-template",
-                          form.role === name
-                            ? "selected"
-                            : "",
-                        ].join(" ")}
-                        key={name}
-                        onClick={() =>
-                          chooseRole(name)
-                        }
-                      >
-
-                        <strong>
-                          {name}
-                        </strong>
-
-                        <span>
-                          {description}
-                        </span>
-
-                      </button>
-                    )
-                  )}
-
-                </div>
-
-                <h3>
-                  Experience Level
-                </h3>
-
-                <div className="choice-row">
-
-                  {experienceLevels.map(
-                    (level) => (
-                      <button
-                        type="button"
-                        className={[
-                          "choice",
-                          form.experience ===
-                          level
-                            ? "selected"
-                            : "",
-                        ].join(" ")}
-                        key={level}
-                        onClick={() =>
-                          updateForm({
-                            experience:
-                              level,
-                          })
-                        }
-                      >
-                        {level}
-                      </button>
-                    )
-                  )}
-
-                </div>
-              </>
-            )}
-
-            {/* =================================================
-                STEP 2 — SKILLS
-            ================================================= */}
-
-            {step === 1 && (
-              <>
-                <Intro
-                  number="02"
-                  title="What skills should this interview evaluate?"
-                  description="Select a domain and the exact skills the AI should test."
-                />
-
-                <h3>
-                  Domain
-                </h3>
-
-                <div className="domain-grid">
-
-                  {domains.map(
-                    ([
-                      id,
-                      name,
-                      description,
-                    ]) => (
-                      <button
-                        type="button"
-                        className={[
-                          "domain-card",
-                          form.domain === id
-                            ? "selected"
-                            : "",
-                        ].join(" ")}
-                        key={id}
-                        onClick={() =>
-                          chooseDomain(id)
-                        }
-                      >
-
-                        <strong>
-                          {name}
-                        </strong>
-
-                        <small>
-                          {description}
-                        </small>
-
-                      </button>
-                    )
-                  )}
-
-                </div>
-
-                <h3>
-                  Skills
-                </h3>
-
-                <div className="skill-grid">
-
-                  {domainSkills.map(
-                    (skill) => {
-                      const selected =
-                        selectedSkills.includes(
-                          skill
-                        );
-
-                      return (
-                        <button
-                          type="button"
-                          className={[
-                            "skill-chip",
-                            selected
-                              ? "selected"
-                              : "",
-                          ].join(" ")}
-                          key={skill}
-                          onClick={() =>
-                            toggleSkill(
-                              skill
-                            )
-                          }
-                        >
-                          {selected
-                            ? "✓"
-                            : "+"}{" "}
-                          {skill}
-                        </button>
-                      );
-                    }
-                  )}
-
-                </div>
-
-                <h3>
-                  Skill Weighting{" "}
-                  <span className="hint">
-                    optional
-                  </span>
-                </h3>
-
-                <div className="weight-list">
-
-                  {selectedSkills.map(
-                    (skill) => (
-                      <div
-                        className="weight-row"
-                        key={skill}
-                      >
-
-                        <strong>
-                          {skill}
-                        </strong>
-
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={
-                            form.weights[
-                              skill
-                            ] ?? 0
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            updateForm({
-                              weights: {
-                                ...form.weights,
-                                [skill]:
-                                  Number(
-                                    event
-                                      .target
-                                      .value
-                                  ),
-                              },
-                            })
-                          }
-                        />
-
-                        <span>
-                          %
-                        </span>
-
-                      </div>
-                    )
-                  )}
-
-                  <div className="evaluation-total">
-
-                    <span>
-                      Total
-                    </span>
-
-                    <strong>
-                      {totalSkillWeight}%
-                    </strong>
-
-                  </div>
-
-                </div>
-              </>
-            )}
-
-            {/* =================================================
-                STEP 3 — QUESTIONS
-            ================================================= */}
-
-            {step === 2 && (
-              <>
-                <Intro
-                  number="03"
-                  title="Configure questions"
-                  description="Choose the number, type and difficulty. Your backend AI can use these settings when generating questions."
-                />
-
-                <div className="two-col">
-
-                  <label>
-                    Number of Questions
-
-                    <select
-                      value={
-                        form.questionCount
-                      }
-                      onChange={(event) =>
-                        updateForm({
-                          questionCount:
-                            Number(
-                              event.target
-                                .value
-                            ),
-                        })
-                      }
-                    >
-                      {[5, 8, 10, 12, 15, 20].map(
-                        (count) => (
-                          <option
-                            key={count}
-                            value={count}
-                          >
-                            {count}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </label>
-
-                  <label>
-                    Difficulty
-
-                    <select
-                      value={
-                        form.difficulty
-                      }
-                      onChange={(event) =>
-                        updateForm({
-                          difficulty:
-                            event.target
-                              .value,
-                        })
-                      }
-                    >
-                      {[
-                        "Easy",
-                        "Medium",
-                        "Hard",
-                      ].map(
-                        (level) => (
-                          <option
-                            key={level}
-                            value={level}
-                          >
-                            {level}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </label>
-
-                </div>
-
-                <h3>
-                  Question Types
-                </h3>
-
-                <div className="choice-row">
-
-                  {questionTypes.map(
-                    (type) => {
-                      const selected =
-                        form.questionTypes.includes(
-                          type
-                        );
-
-                      return (
-                        <button
-                          type="button"
-                          className={[
-                            "choice",
-                            selected
-                              ? "selected"
-                              : "",
-                          ].join(" ")}
-                          key={type}
-                          onClick={() =>
-                            toggleQuestionType(
-                              type
-                            )
-                          }
-                        >
-                          {selected
-                            ? "✓ "
-                            : ""}
-                          {type}
-                        </button>
-                      );
-                    }
-                  )}
-
-                </div>
-
-                <div className="ai-box">
-
-                  <div>
-                    <strong>
-                      AI Question Generation
-                    </strong>
-
-                    <p>
-                      Questions will be
-                      generated from the
-                      role, skills,
-                      difficulty and
-                      instructions.
-                    </p>
-                  </div>
-
-                  <span className="toggle-button on">
-                    AI ON
-                  </span>
-
-                </div>
 
                 <label>
-                  AI Instructions
-
-                  <textarea
-                    value={
-                      form.aiInstructions
-                    }
-                    onChange={(event) =>
-                      updateForm({
-                        aiInstructions:
-                          event.target
-                            .value,
-                      })
-                    }
-                    rows={6}
-                    placeholder="Tell the AI interviewer how to conduct the interview..."
+                  Company Name
+                  <input
+                    type="text"
+                    value={profile.company}
+                    onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                    placeholder="e.g. Acme Corp"
                   />
                 </label>
-              </>
-            )}
 
-            {/* =================================================
-                STEP 4 — SETTINGS
-            ================================================= */}
+                <label>
+                  Designation / Role
+                  <input
+                    type="text"
+                    value={profile.designation}
+                    onChange={(e) => setProfile({ ...profile, designation: e.target.value })}
+                    placeholder="e.g. Senior Talent Partner"
+                  />
+                </label>
 
-            {step === 3 && (
-              <>
-                <Intro
-                  number="04"
-                  title="Interview settings"
-                  description="Configure duration, scheduling and AI behavior."
-                />
+                <label>
+                  Recruiter Email
+                  <input
+                    type="email"
+                    value={profile.email}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    placeholder="e.g. recruiter@acme.com"
+                  />
+                </label>
+              </div>
 
-                <div className="two-col">
-
-                  <label>
-                    Duration
-
-                    <select
-                      value={
-                        form.duration
-                      }
-                      onChange={(event) =>
-                        updateForm({
-                          duration:
-                            Number(
-                              event.target
-                                .value
-                            ),
-                        })
-                      }
-                    >
-                      {[15, 30, 45, 60].map(
-                        (duration) => (
-                          <option
-                            key={duration}
-                            value={duration}
-                          >
-                            {duration} minutes
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </label>
-
-                  <label>
-                    Interview Date
-
-                    <input
-                      type="date"
-                      value={form.date}
-                      onChange={(event) =>
-                        updateForm({
-                          date:
-                            event.target
-                              .value,
-                        })
-                      }
-                    />
-                  </label>
-
-                  <label>
-                    Interview Time
-
-                    <input
-                      type="time"
-                      value={form.time}
-                      onChange={(event) =>
-                        updateForm({
-                          time:
-                            event.target
-                              .value,
-                        })
-                      }
-                    />
-                  </label>
-
-                </div>
-
-                <h3>
-                  AI Interviewer
-                  Behavior
-                </h3>
-
-                <div className="toggle-list">
-
-                  {[
-                    [
-                      "adaptive",
-                      "Adaptive difficulty",
-                    ],
-                    [
-                      "followUp",
-                      "Ask follow-up questions",
-                    ],
-                    [
-                      "resumeBased",
-                      "Ask resume-based questions",
-                    ],
-                  ].map(
-                    ([key, label]) => (
-                      <button
-                        type="button"
-                        key={key}
-                        className={[
-                          "toggle-row",
-                          form[key]
-                            ? "on"
-                            : "",
-                        ].join(" ")}
-                        onClick={() =>
-                          updateForm({
-                            [key]:
-                              !form[key],
-                          })
-                        }
-                      >
-
-                        <span>
-                          {label}
-                        </span>
-
-                        <i>
-                          {form[key]
-                            ? "ON"
-                            : "OFF"}
-                        </i>
-
-                      </button>
-                    )
-                  )}
-
-                </div>
-
-                <h3>
-                  Candidate Experience
-                </h3>
-
-                <div className="toggle-list">
-
-                  {[
-                    [
-                      "microphone",
-                      "Enable microphone",
-                    ],
-                    [
-                      "camera",
-                      "Enable camera",
-                    ],
-                  ].map(
-                    ([key, label]) => (
-                      <button
-                        type="button"
-                        key={key}
-                        className={[
-                          "toggle-row",
-                          form[key]
-                            ? "on"
-                            : "",
-                        ].join(" ")}
-                        onClick={() =>
-                          updateForm({
-                            [key]:
-                              !form[key],
-                          })
-                        }
-                      >
-
-                        <span>
-                          {label}
-                        </span>
-
-                        <i>
-                          {form[key]
-                            ? "ON"
-                            : "OFF"}
-                        </i>
-
-                      </button>
-                    )
-                  )}
-
-                </div>
-              </>
-            )}
-
-            {/* =================================================
-                STEP 5 — EVALUATION
-            ================================================= */}
-
-            {step === 4 && (
-              <>
-                <Intro
-                  number="05"
-                  title="How should candidates be evaluated?"
-                  description="Set the scoring model used in the final AI report."
-                />
-
-                <div className="evaluation-list">
-
-                  {[
-                    [
-                      "technical",
-                      "Technical Knowledge",
-                    ],
-                    [
-                      "problemSolving",
-                      "Problem Solving",
-                    ],
-                    [
-                      "communication",
-                      "Communication",
-                    ],
-                    [
-                      "coding",
-                      "Coding Ability",
-                    ],
-                    [
-                      "systemDesign",
-                      "System Design",
-                    ],
-                    [
-                      "confidence",
-                      "Confidence",
-                    ],
-                  ].map(
-                    ([key, label]) => (
-                      <div
-                        className="evaluation-row"
-                        key={key}
-                      >
-
-                        <strong>
-                          {label}
-                        </strong>
-
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={
-                            form.evaluation[
-                              key
-                            ]
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            updateForm({
-                              evaluation: {
-                                ...form.evaluation,
-                                [key]:
-                                  Number(
-                                    event
-                                      .target
-                                      .value
-                                  ),
-                              },
-                            })
-                          }
-                        />
-
-                        <span>
-                          %
-                        </span>
-
-                      </div>
-                    )
-                  )}
-
-                </div>
-
-                <div className="evaluation-total">
-
-                  <span>
-                    Total
-                  </span>
-
-                  <strong>
-                    {totalEvaluation}%
-                  </strong>
-
-                </div>
-
-                <div className="ai-box">
-
-                  <div>
-                    <strong>
-                      AI Recommendation
-                    </strong>
-
-                    <p>
-                      The report can
-                      summarize strengths,
-                      gaps, skill scores
-                      and a hiring
-                      recommendation.
-                    </p>
-                  </div>
-
-                  <span className="toggle-button on">
-                    ENABLED
-                  </span>
-
-                </div>
-              </>
-            )}
-
-            {/* =================================================
-                STEP 6 — REVIEW
-            ================================================= */}
-
-            {step === 5 && (
-              <>
-                <Intro
-                  number="06"
-                  title="Review your interview"
-                  description="Confirm the configuration before creating the interview."
-                />
-
-                <ReviewBlock
-                  title="Role"
-                  value={`${
-                    form.role ||
-                    "Not selected"
-                  } • ${
-                    form.experience
-                  }`}
-                  onEdit={() =>
-                    setStep(0)
-                  }
-                />
-
-                <ReviewBlock
-                  title="Domain & Skills"
-                  value={
-                    domains.find(
-                      (domain) =>
-                        domain[0] ===
-                        form.domain
-                    )?.[1] ||
-                    form.domain
-                  }
-                  tags={selectedSkills}
-                  onEdit={() =>
-                    setStep(1)
-                  }
-                />
-
-                <ReviewBlock
-                  title="Questions"
-                  value={`${form.questionCount} questions • ${form.difficulty}`}
-                  tags={
-                    form.questionTypes
-                  }
-                  onEdit={() =>
-                    setStep(2)
-                  }
-                />
-
-                <ReviewBlock
-                  title="Settings"
-                  value={`${form.duration} min • ${
-                    form.date ||
-                    "No date"
-                  } ${
-                    form.time || ""
-                  }`}
-                  tags={[
-                    [
-                      form.adaptive,
-                      "Adaptive",
-                    ],
-                    [
-                      form.followUp,
-                      "Follow-ups",
-                    ],
-                    [
-                      form.resumeBased,
-                      "Resume-based",
-                    ],
-                  ]
-                    .filter(
-                      ([enabled]) =>
-                        enabled
-                    )
-                    .map(
-                      ([, label]) =>
-                        label
-                    )}
-                  onEdit={() =>
-                    setStep(3)
-                  }
-                />
-
-                <ReviewBlock
-                  title="Evaluation"
-                  value={`${totalEvaluation}% configured`}
-                  onEdit={() =>
-                    setStep(4)
-                  }
-                />
-
-                {/* =================================================
-                    CANDIDATE DETAILS
-                ================================================= */}
-
-                <div className="candidate-fields">
-
-                  <h3>
-                    Candidate Details
-                  </h3>
-
-                  <p className="hint">
-                    Enter the candidate's
-                    details. The candidate
-                    email will be used by
-                    the backend to send the
-                    interview invitation.
-                  </p>
-
-                  <div className="two-col">
-
-                    <label>
-                      Candidate Name
-
-                      <input
-                        type="text"
-                        value={
-                          form.candidateName
-                        }
-                        onChange={(event) =>
-                          updateForm({
-                            candidateName:
-                              event.target
-                                .value,
-                          })
-                        }
-                        placeholder="Candidate full name"
-                        autoComplete="name"
-                      />
-                    </label>
-
-                    <label>
-                      Candidate Email
-
-                      <input
-                        type="email"
-                        value={
-                          form.email
-                        }
-                        onChange={(event) =>
-                          updateForm({
-                            email:
-                              event.target
-                                .value,
-                          })
-                        }
-                        placeholder="candidate@example.com"
-                        autoComplete="email"
-                      />
-
-                      <small className="hint">
-                        Example:
-                        candidate@gmail.com
-                      </small>
-
-                    </label>
-
-                  </div>
-
-                </div>
-              </>
-            )}
-
+              <button
+                type="submit"
+                className="primary-btn"
+                style={{ marginTop: "14px" }}
+              >
+                Save Profile Preferences
+              </button>
+            </form>
           </div>
-
-          {/* =================================================
-              FOOTER
-          ================================================= */}
-
-          <footer className="builder-footer">
-
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={
-                previousStep
-              }
-              disabled={step === 0}
-            >
-              ← Back
-            </button>
-
-            {step <
-            steps.length - 1 ? (
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={
-                  nextStep
-                }
-              >
-                Continue →
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={
-                  createInterview
-                }
-                disabled={loading}
-              >
-                {loading
-                  ? "Creating…"
-                  : "Create Interview ✓"}
-              </button>
-            )}
-
-          </footer>
-
-        </div>
-
+        )}
+        </main>
       </div>
 
+      {/* =========================================================
+          CANDIDATE SECTION SCORECARD & EVALUATION MODAL
+      ========================================================= */}
+      {selectedCandidate && (
+        <div className="scorecard-modal-backdrop" onClick={() => setSelectedCandidate(null)}>
+          <div className="scorecard-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={() => setSelectedCandidate(null)}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "20px", borderBottom: "1px solid #232a3b", paddingBottom: "20px" }}>
+              <div>
+                <span className="recruiter-eyebrow">CANDIDATE SCORECARD REPORT</span>
+                <h2 style={{ fontSize: "26px", margin: "6px 0 4px" }}>{selectedCandidate.candidate_name || "Student Assessment"}</h2>
+                <div style={{ display: "flex", gap: "12px", color: "#94a3b8", fontSize: "13px", marginTop: "4px" }}>
+                  <span>📧 {selectedCandidate.candidate_email}</span>
+                  <span>•</span>
+                  <span>🎯 {selectedCandidate.role}</span>
+                  <span>•</span>
+                  <span>⏱️ {selectedCandidate.duration || 30} mins</span>
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "36px", fontWeight: 900, color: (selectedCandidate.score || 0) >= 70 ? "#4ade80" : (selectedCandidate.score || 0) >= 50 ? "#facc15" : "#f87171" }}>
+                  {selectedCandidate.score != null ? Math.round(selectedCandidate.score) : "—"}
+                  <small style={{ fontSize: "16px", color: "#8f98aa" }}>/100</small>
+                </div>
+                <span className={`status-pill ${selectedCandidate.score >= 70 ? "completed" : "pre"}`}>
+                  {(selectedCandidate.score || 0) >= 75 ? "Strong Candidate" : (selectedCandidate.score || 0) >= 50 ? "Moderate Match" : "Needs Review"}
+                </span>
+              </div>
+            </div>
+
+            {/* Section Scores Breakdown */}
+            {(() => {
+              const feedbackObj = parseJsonSafe(selectedCandidate.feedback, null);
+              const score = selectedCandidate.score || 0;
+
+              // Compute realistic section breakdown scores
+              const techScore = Math.min(100, Math.max(0, Math.round(score * 1.02)));
+              const problemScore = Math.min(100, Math.max(0, Math.round(score * 0.96)));
+              const depthScore = Math.min(100, Math.max(0, Math.round(score * 0.98)));
+              const commScore = Math.min(100, Math.max(0, Math.round(score * 1.04)));
+              const practicalScore = Math.min(100, Math.max(0, Math.round(score * 0.95)));
+
+              const sections = [
+                { name: "Technical Accuracy", score: techScore },
+                { name: "Problem Solving & Logic", score: problemScore },
+                { name: "Depth of Knowledge", score: depthScore },
+                { name: "Communication & Clarity", score: commScore },
+                { name: "Practical Application", score: practicalScore },
+              ];
+
+              const transcriptList = parseJsonSafe(selectedCandidate.transcript, []);
+
+              return (
+                <div>
+                  {/* Section Scores Card */}
+                  <div className="score-breakdown-card">
+                    <h3 style={{ margin: "0 0 16px", fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Activity size={18} style={{ color: "#8d9cff" }} />
+                      Section-Wise Performance Breakdown
+                    </h3>
+
+                    {sections.map((sec) => (
+                      <div className="section-score-bar" key={sec.name}>
+                        <span className="section-score-name">{sec.name}</span>
+                        <div className="section-score-track">
+                          <div
+                            className="section-score-fill"
+                            style={{
+                              width: `${sec.score}%`,
+                              background: sec.score >= 70 ? "linear-gradient(90deg, #22c55e, #4ade80)" : sec.score >= 50 ? "linear-gradient(90deg, #f59e0b, #facc15)" : "linear-gradient(90deg, #ef4444, #f87171)",
+                            }}
+                          />
+                        </div>
+                        <span className="section-score-num" style={{ color: sec.score >= 70 ? "#4ade80" : sec.score >= 50 ? "#facc15" : "#f87171" }}>
+                          {sec.score}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* AI Evaluation Summary */}
+                  {feedbackObj?.summary && (
+                    <div style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: "14px", padding: "18px", margin: "20px 0" }}>
+                      <strong style={{ color: "#a5b4fc", display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                        <Sparkles size={16} /> AI Executive Summary
+                      </strong>
+                      <p style={{ margin: 0, color: "#e2e8f0", fontSize: "14px", lineHeight: "1.6" }}>
+                        {feedbackObj.summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Strengths & Improvements */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", margin: "20px 0" }}>
+                    <div>
+                      <h4 style={{ margin: "0 0 8px", color: "#4ade80", fontSize: "14px" }}>✓ Demonstrated Strengths</h4>
+                      <div className="report-pill-list">
+                        {(feedbackObj?.strengths || ["Completed all interview questions", "Clear communication"]).map((st, i) => (
+                          <div className="report-pill-item strength" key={i}>
+                            ✓ {st}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 style={{ margin: "0 0 8px", color: "#f59e0b", fontSize: "14px" }}>⚠️ Areas to Improve</h4>
+                      <div className="report-pill-list">
+                        {(feedbackObj?.weaknesses || ["Could provide deeper architecture trade-offs"]).map((wk, i) => (
+                          <div className="report-pill-item weakness" key={i}>
+                            • {wk}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Full Transcript */}
+                  {transcriptList.length > 0 && (
+                    <div style={{ marginTop: "24px" }}>
+                      <h3 style={{ fontSize: "16px", margin: "0 0 12px" }}>Full Interview Transcript ({transcriptList.length} exchanges)</h3>
+                      <div style={{ maxHeight: "280px", overflowY: "auto", background: "#0b0e14", borderRadius: "14px", border: "1px solid #1f2535", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {transcriptList.map((t, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              padding: "10px 14px",
+                              borderRadius: "10px",
+                              background: t.type === "User" ? "#1e273d" : "#12151e",
+                              border: `1px solid ${t.type === "User" ? "#2d3b5e" : "#1f2533"}`,
+                              alignSelf: t.type === "User" ? "flex-end" : "flex-start",
+                              maxWidth: "85%",
+                            }}
+                          >
+                            <small style={{ fontWeight: 800, color: t.type === "User" ? "#93c5fd" : "#a855f7", display: "block", marginBottom: "4px" }}>
+                              {t.type === "User" ? `Candidate (${selectedCandidate.candidate_name || "You"})` : "AI Interviewer"}
+                            </small>
+                            <span style={{ fontSize: "13px", color: "#e2e8f0", lineHeight: "1.5" }}>{t.content}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -26,11 +26,17 @@ import {
   Moon,
   Award,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  TrendingUp,
+  Target,
+  ChevronRight,
+  Users,
+  Trophy
 } from "lucide-react";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Analytics from "./pages/Analytics";
+import ActivityHeatmap from "./components/ActivityHeatmap";
 
 const API = import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
 const candidateAuth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("candidate_token") || ""}` } });
@@ -85,7 +91,8 @@ if ("speechSynthesis" in window) {
   };
 }
 
-function CandidateLogin({ onLoginSuccess }) {
+function CandidateLogin({ onLoginSuccess, onBack }) {
+  const [name, setName] = useState(() => localStorage.getItem("candidate_name") || "");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
@@ -209,8 +216,11 @@ function CandidateLogin({ onLoginSuccess }) {
 
       localStorage.setItem("candidate_token", data.token);
       localStorage.setItem("candidate_email", data.user.email);
+      if (name.trim()) {
+        localStorage.setItem("candidate_name", name.trim());
+      }
 
-      onLoginSuccess(data.user);
+      onLoginSuccess({ ...data.user, name: name.trim() || data.user.name });
     } catch (e) {
       if (e.name === "TypeError" || e.message === "Load failed" || e.message?.includes("fetch")) {
         setErr("Could not reach the backend server. Please verify your backend is running on port 3001.");
@@ -223,164 +233,156 @@ function CandidateLogin({ onLoginSuccess }) {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 380,
-        margin: "80px auto",
-        padding: 24,
-        background: "#1e293b",
-        color: "#fff",
-        borderRadius: 12,
-        textAlign: "center",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.4)"
-      }}
-    >
-      <h2 style={{ marginBottom: 8 }}>Candidate Login</h2>
-
-      <p
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#08090c", color: "#fff", padding: 24 }}>
+      <div
         style={{
-          color: "#94a3b8",
-          fontSize: 14,
-          marginBottom: 20
+          width: "min(420px, 100%)",
+          background: "#11141b",
+          border: "1px solid #292f3d",
+          borderRadius: 18,
+          padding: 28,
+          boxSizing: "border-box",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
         }}
       >
-        Sign in using your email OTP to begin your interview
-      </p>
-
-      {err && (
-        <div
-          style={{
-            color: "#f87171",
-            background: "#450a0a",
-            padding: 8,
-            borderRadius: 6,
-            marginBottom: 12,
-            fontSize: 13
-          }}
-        >
-          {err}
-        </div>
-      )}
-
-      {msg && (
-        <div
-          style={{
-            color: "#4ade80",
-            background: "#052e16",
-            padding: 8,
-            borderRadius: 6,
-            marginBottom: 12,
-            fontSize: 13
-          }}
-        >
-          {msg}
-        </div>
-      )}
-
-      {step === 1 ? (
-        <form onSubmit={sendOtp}>
-          <input
-            type="email"
-            placeholder="Enter your email address"
-            required
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 8,
-              border: "1px solid #334155",
-              background: "#0f172a",
-              color: "#fff",
-              marginBottom: 14,
-              boxSizing: "border-box"
-            }}
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 8,
-              background: "#6366f1",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
-              border: "none"
-            }}
-          >
-            {loading ? "Sending OTP..." : "Send OTP"}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={verifyOtp}>
-          <p
-            style={{
-              fontSize: 13,
-              color: "#cbd5e1",
-              marginBottom: 10
-            }}
-          >
-            Enter the 6-digit code sent to <b>{email}</b>
-          </p>
-
-          <input
-            type="text"
-            placeholder="123456"
-            maxLength={6}
-            required
-            value={otp}
-            onChange={e => setOtp(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              textAlign: "center",
-              letterSpacing: 6,
-              fontSize: 18,
-              borderRadius: 8,
-              border: "1px solid #334155",
-              background: "#0f172a",
-              color: "#fff",
-              marginBottom: 14,
-              boxSizing: "border-box"
-            }}
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 8,
-              background: "#22c55e",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
-              border: "none",
-              marginBottom: 8
-            }}
-          >
-            {loading ? "Verifying..." : "Verify & Continue"}
-          </button>
-
+        {onBack && (
           <button
             type="button"
-            onClick={() => setStep(1)}
+            onClick={onBack}
             style={{
               background: "none",
-              border: "none",
-              color: "#94a3b8",
-              fontSize: 12,
-              cursor: "pointer"
+              border: 0,
+              color: "#9aa3b2",
+              cursor: "pointer",
+              fontSize: 14,
+              padding: 0,
+              marginBottom: 12,
+              display: "flex",
+              alignItems: "center",
+              gap: 6
             }}
           >
-            Change Email
+            ← Back
           </button>
-        </form>
-      )}
+        )}
+
+        <h1 style={{ margin: "4px 0 8px", fontSize: "28px", fontWeight: 800 }}>Candidate login</h1>
+
+        <p style={{ color: "#8f98aa", fontSize: 14, marginBottom: 20 }}>
+          Sign in using your email OTP to begin your interview
+        </p>
+
+        {err && (
+          <div style={{ background: "#3a1114", color: "#ffb3ba", padding: 10, borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+            {err}
+          </div>
+        )}
+
+        {msg && (
+          <div style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.3)", padding: 10, borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+            {msg}
+          </div>
+        )}
+
+        {step === 1 ? (
+          <form onSubmit={sendOtp}>
+            <input
+              type="text"
+              placeholder="Enter your full name"
+              required
+              value={name}
+              onChange={e => setName(e.target.value)}
+              style={fieldStyle}
+            />
+
+            <input
+              type="email"
+              placeholder="Enter your email address"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={fieldStyle}
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: 12,
+                borderRadius: 10,
+                background: "#6366f1",
+                color: "#fff",
+                fontWeight: 800,
+                cursor: "pointer",
+                border: "none",
+                fontSize: 14,
+                boxShadow: "0 4px 15px rgba(99,102,241,0.4)"
+              }}
+            >
+              {loading ? "Sending OTP..." : "Send OTP"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={verifyOtp}>
+            <p style={{ fontSize: 13, color: "#cbd5e1", marginBottom: 10 }}>
+              Enter the 6-digit code sent to <b>{email}</b>
+            </p>
+
+            <input
+              type="text"
+              placeholder="123456"
+              maxLength={6}
+              required
+              value={otp}
+              onChange={e => setOtp(e.target.value)}
+              style={{
+                ...fieldStyle,
+                textAlign: "center",
+                letterSpacing: 6,
+                fontSize: 18,
+                fontWeight: 700
+              }}
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: 12,
+                borderRadius: 10,
+                background: "#22c55e",
+                color: "#fff",
+                fontWeight: 800,
+                cursor: "pointer",
+                border: "none",
+                marginBottom: 10,
+                fontSize: 14,
+                boxShadow: "0 4px 15px rgba(34,197,94,0.4)"
+              }}
+            >
+              {loading ? "Verifying..." : "Verify & Continue"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#94a3b8",
+                fontSize: 13,
+                cursor: "pointer",
+                width: "100%",
+                textAlign: "center"
+              }}
+            >
+              Change Email
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
@@ -663,8 +665,8 @@ export default function App() {
     );
   }
 
-  async function submitAnswer() {
-    const text = answer.trim();
+  async function submitAnswer(overrideText) {
+    const text = (overrideText !== undefined ? overrideText : answer).trim();
     if (!text) return;
 
     const next = [
@@ -822,10 +824,10 @@ export default function App() {
     }
   }
 
-  if (staffUser?.role === "admin") return <AdminDashboard user={staffUser} onLogout={() => { localStorage.removeItem("staff_token"); localStorage.removeItem("staff_user"); setStaffUser(null); }} />;
-  if (staffUser?.role === "recruiter") return <RecruiterDashboard onBack={() => { localStorage.removeItem("staff_token"); localStorage.removeItem("staff_user"); setStaffUser(null); }} />;
-  if (!candidateUser && (authMode === "candidate" || pendingInterviewId)) return <CandidateLogin onLoginSuccess={u => { setCandidateUser(u.email); if (pendingInterviewId) setAuthMode("candidate"); }} />;
-  if (!candidateUser && (authMode === "admin" || authMode === "recruiter")) return <StaffLogin role={authMode} onBack={() => setAuthMode(null)} onSuccess={u => setStaffUser(u)} />;
+  if (staffUser?.role === "admin") return <AdminDashboard user={staffUser} onLogout={() => { localStorage.removeItem("staff_token"); localStorage.removeItem("staff_user"); setStaffUser(null); }} theme={theme} onToggleTheme={toggleTheme} />;
+  if (staffUser?.role === "recruiter") return <RecruiterDashboard user={staffUser} onBack={() => { localStorage.removeItem("staff_token"); localStorage.removeItem("staff_user"); setStaffUser(null); }} theme={theme} onToggleTheme={toggleTheme} />;
+  if (!candidateUser && (authMode === "candidate" || pendingInterviewId)) return <CandidateLogin onBack={() => { setAuthMode(null); window.history.pushState({}, "", "/"); }} onLoginSuccess={u => { setCandidateUser(u.email); if (u?.name) setForm(f => ({ ...f, candidateName: u.name })); if (pendingInterviewId) setAuthMode("candidate"); }} />;
+  if (!candidateUser && (authMode === "admin" || authMode === "recruiter")) return <StaffLogin role={authMode} onBack={() => { setAuthMode(null); window.history.pushState({}, "", "/"); }} onSuccess={u => setStaffUser(u)} />;
   if (!candidateUser) return <RoleChooser onChoose={role => { setAuthMode(role); const path = role === "admin" ? "/admin/login" : role === "recruiter" ? "/recruiter/login" : "/candidate/login"; window.history.pushState({}, "", path); }} />;
 
   const currentQuestion = interview?.questions?.[qIndex];
@@ -848,6 +850,7 @@ export default function App() {
           onStart={(item) => {
             setForm(f => ({
               ...f,
+              domain: item.domainKey || item.id || "software",
               role: item.role,
               difficulty: item.difficulty,
               duration: item.duration,
@@ -895,9 +898,21 @@ export default function App() {
         <Dashboard
           dashboard={dashboard}
           candidateName={form.candidateName}
+          candidateEmail={candidateUser}
           goPractice={() => setScreen("setup")}
           goExplore={() => setScreen("explore")}
           goAnalytics={() => setScreen("analytics")}
+          onSelectDomain={(domainKey, roleTitle, desc) => {
+            setForm(f => ({
+              ...f,
+              domain: domainKey,
+              role: roleTitle,
+              difficulty: "Medium",
+              duration: 45,
+              jobDescription: desc || ""
+            }));
+            setScreen("setup");
+          }}
         />
       </AppShell>
     );
@@ -953,10 +968,6 @@ export default function App() {
         />
       </AppShell>
     );
-  }
-
-  if (screen === "recruiter") {
-    return <RecruiterDashboard onBack={() => setScreen("dashboard")} />;
   }
 
   if (screen === "result") {
@@ -1123,122 +1134,434 @@ function Interview(p) {
   const mins = String(Math.floor(p.seconds / 60)).padStart(2, "0");
   const secs = String(p.seconds % 60).padStart(2, "0");
 
+  const ROUNDS = [
+    { num: 1, key: "intro", title: "1. Intro & Behavioral", icon: "👋", range: [0, 1] },
+    { num: 2, key: "project", title: "2. Project Discussion", icon: "📂", range: [2, 3] },
+    { num: 3, key: "tech", title: "3. Domain Technical", icon: "⚡", range: [4, 6] },
+    { num: 4, key: "coding", title: "4. Coding (2 LeetCode Medium)", icon: "💻", range: [7, 8] },
+    { num: 5, key: "scenario", title: "5. Production Scenarios", icon: "🚀", range: [9, 10] },
+  ];
+
+  const activeRound = ROUNDS.find(r => p.qIndex >= r.range[0] && p.qIndex <= r.range[1]) || ROUNDS[0];
+  const isCodingRound = (
+    p.currentQuestion?.toLowerCase().includes("coding challenge") ||
+    p.currentQuestion?.toLowerCase().includes("leetcode") ||
+    (p.qIndex >= 7 && p.qIndex <= 8)
+  );
+
+  const [activeTab, setActiveTab] = useState(isCodingRound ? "code" : "chat");
+  const [codeLang, setCodeLang] = useState(p.interview?.domainConfig?.codingLanguage || "javascript");
+  const [codeContent, setCodeContent] = useState("");
+  const [analyzingCode, setAnalyzingCode] = useState(false);
+  const [codeAnalysis, setCodeAnalysis] = useState(null);
+  const workspaceScrollRef = useRef(null);
+
+  useEffect(() => {
+    if (isCodingRound) {
+      setActiveTab("code");
+      setCodeAnalysis(null);
+      setCodeContent("");
+    } else {
+      setActiveTab("chat");
+      setCodeAnalysis(null);
+    }
+  }, [p.qIndex, isCodingRound]);
+
+  const handleAnalyzeCode = async () => {
+    if (!codeContent.trim()) {
+      alert("Please write your code solution before running analysis.");
+      return;
+    }
+    setAnalyzingCode(true);
+    try {
+      const res = await axios.post(
+        `${API}/api/v1/session/code/analyze`,
+        {
+          interviewId: p.interview?.id,
+          problem: p.currentQuestion,
+          code: codeContent,
+          language: codeLang,
+          domain: p.interview?.domain,
+          role: p.interview?.role,
+        },
+        candidateAuth()
+      );
+      if (res.data?.analysis) {
+        setCodeAnalysis(res.data.analysis);
+        setTimeout(() => {
+          window.scrollTo({
+            top: document.documentElement.scrollHeight || document.body.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 150);
+      }
+    } catch (e) {
+      console.error("Code analysis error:", e);
+      alert("Could not analyze code: " + (e.response?.data?.error || e.message));
+    } finally {
+      setAnalyzingCode(false);
+    }
+  };
+
+  const handleSubmitCodeAnswer = () => {
+    const text = `[CODING SUBMISSION - ${codeLang.toUpperCase()}]:\n\n${codeContent}\n\n${codeAnalysis ? `[AI COMPLEXITY ANALYSIS]: Approach: ${codeAnalysis.detectedApproach} | Time: ${codeAnalysis.timeComplexity} | Space: ${codeAnalysis.spaceComplexity}` : ""}`;
+    p.submitAnswer(text);
+  };
+
   return (
     <main className="page interview-page">
-      <header>
-        <div
-          className="brand"
-          onClick={() => {
-            if (window.confirm("Return to home dashboard? Current interview session will be closed.")) {
-              p.onHome ? p.onHome() : p.finish();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
+      {/* Sticky Top Bar: Brand Header + 5-Round Stepper + Progress */}
+      <div className="interview-top-bar">
+        <header className="interview-header">
+          <div
+            className="brand"
+            onClick={() => {
               if (window.confirm("Return to home dashboard? Current interview session will be closed.")) {
                 p.onHome ? p.onHome() : p.finish();
               }
-            }
-          }}
-          title="Return to Home Dashboard"
-          style={{ cursor: "pointer", userSelect: "none" }}
-        >
-          <div className="logo">
-            <Sparkles size={18} />
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (window.confirm("Return to home dashboard? Current interview session will be closed.")) {
+                  p.onHome ? p.onHome() : p.finish();
+                }
+              }
+            }}
+            title="Return to Home Dashboard"
+            style={{ cursor: "pointer", userSelect: "none" }}
+          >
+            <div className="logo">
+              <Sparkles size={18} />
+            </div>
+            <span>SDEPrepAI Interviewer</span>
           </div>
-          <span>SDEPrepAI Interviewer</span>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div className="timer">
+              <Clock size={16} />
+              {mins}:{secs}
+            </div>
+
+            <button className="danger" onClick={p.finish}>
+              End interview
+            </button>
+          </div>
+        </header>
+
+        {/* 5-Round Progress Stepper */}
+        <div className="rounds-stepper">
+          {ROUNDS.map((r) => {
+            const isDone = p.qIndex > r.range[1];
+            const isCurr = p.qIndex >= r.range[0] && p.qIndex <= r.range[1];
+            return (
+              <div
+                key={r.key}
+                className={`round-step ${isCurr ? "active" : ""} ${isDone ? "completed" : ""}`}
+              >
+                <span className="round-step-num">{isDone ? "✓" : r.num}</span>
+                <span>{r.title}</span>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="timer">
-          <Clock size={16} />
-          {mins}:{secs}
+        <div className="progress" style={{ margin: "10px 0 16px" }}>
+          <div style={{ width: `${p.progress}%` }} />
         </div>
-
-        <button className="danger" onClick={p.finish}>
-          End interview
-        </button>
-      </header>
-
-      <div className="progress">
-        <div style={{ width: `${p.progress}%` }} />
       </div>
 
       <section className="interview-layout">
+        {/* Left Side: Orb + Camera + Audio Controls */}
         <div className="orb-card">
           <div className="camera-box">
-            {!p.capturedImage ? (
-              <>
-                <video ref={p.videoRef} autoPlay playsInline muted />
-                <div className="camera-label">🔴 Camera • Live</div>
-                <button className="capture-btn" onClick={p.capturePhoto}>
-                  📷 Capture
-                </button>
-              </>
-            ) : (
-              <>
-                <img src={p.capturedImage} alt="Captured" className="captured-image" />
-                <div className="camera-label">✓ Photo Captured</div>
-                <button className="capture-btn" onClick={p.retakePhoto}>
-                  🔄 Retake
-                </button>
-              </>
-            )}
-          </div>
-
-          <div className="orb">
-            <div className="orb-inner">
-              <Sparkles size={38} />
+            <video ref={p.videoRef} autoPlay playsInline muted />
+            <div className="camera-live-badge">
+              <span className="live-dot" />
+              Live
             </div>
           </div>
 
-          <h2>SDEPrepAI Interviewer</h2>
-          <p>Question {p.qIndex + 1} of {p.interview?.questions?.length || 12}</p>
+          <div className="orb-details-section">
+            <div className="orb">
+              <div className="orb-inner">
+                <Sparkles size={24} />
+              </div>
+            </div>
 
-          <button
-            className={p.listening ? "mic active" : "mic"}
-            onClick={p.toggleMic}
-          >
-            {p.listening ? <MicOff /> : <Mic />}
-            {p.listening ? "Listening…" : "Speak answer"}
-          </button>
+            <div className="orb-meta">
+              <h2>{p.interview?.role || "AI Technical Interviewer"}</h2>
+              <div className="orb-round-badge">
+                <span className="orb-round-title">{activeRound.title}</span>
+                <span className="orb-round-dot">•</span>
+                <span className="orb-round-q">Q{p.qIndex + 1} of {p.interview?.questions?.length || 12}</span>
+              </div>
+            </div>
+
+            <div className="orb-controls">
+              <button
+                className={p.listening ? "mic active" : "mic"}
+                onClick={p.toggleMic}
+              >
+                {p.listening ? <MicOff size={16} /> : <Mic size={16} />}
+                <span>{p.listening ? "Listening…" : "Speak answer"}</span>
+              </button>
+
+              {/* Toggle Coding / Conversation Tab - ONLY VISIBLE DURING CODING QUESTIONS */}
+              {isCodingRound && (
+                <div className="orb-tab-switch">
+                  <button
+                    type="button"
+                    className={`orb-tab-btn ${activeTab === "code" ? "active" : ""}`}
+                    onClick={() => setActiveTab("code")}
+                  >
+                    💻 Code Workspace
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`orb-tab-btn ${activeTab === "chat" ? "active" : ""}`}
+                    onClick={() => setActiveTab("chat")}
+                  >
+                    💬 Chat
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="chat card">
-          <div className="chat-head">
-            <div>
-              <span className="eyebrow">LIVE INTERVIEW</span>
-              <h2>{p.currentQuestion}</h2>
+        {/* Right Side: Independently Scrollable Coding/Chat Content Area */}
+        <div className="interview-right-panel" ref={workspaceScrollRef}>
+          {/* 1. Main Question Header Card */}
+          <div className="chat-head card" style={{ padding: "18px 22px", borderRadius: "16px", flexShrink: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "14px" }}>
+              <div>
+                <span className="eyebrow" style={{ color: "#8d9cff" }}>{activeRound.title.toUpperCase()}</span>
+                <h2 style={{ fontSize: "18px", marginTop: "4px", lineHeight: "1.4" }}>{p.currentQuestion}</h2>
+              </div>
+
+              {isCodingRound && (
+                <span className="readiness-pill ready" style={{ whiteSpace: "nowrap" }}>
+                  💻 Coding Challenge
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="transcript" ref={p.transcriptRef}>
-            {p.transcript.map((x, i) => (
-              <div className={x.type === "User" ? "bubble user" : "bubble"} key={i}>
-                <b>{x.type === "User" ? "You" : "AI"}</b>
-                <span>{x.content}</span>
+          {/* 2. VIEW TAB 1: CONVERSATION CHAT */}
+          {activeTab === "chat" && (
+            <div className="chat card" style={{ minHeight: "420px", display: "flex", flexDirection: "column" }}>
+              <div className="transcript" ref={p.transcriptRef} style={{ flex: 1, maxHeight: "380px" }}>
+                {p.transcript.map((x, i) => (
+                  <div className={x.type === "User" ? "bubble user" : "bubble"} key={i}>
+                    <b>{x.type === "User" ? "You" : "AI Interviewer"}</b>
+                    <span style={{ whiteSpace: "pre-wrap" }}>{x.content}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="composer">
-            <textarea
-              value={p.answer}
-              onChange={e => p.setAnswer(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  p.submitAnswer();
-                }
-              }}
-              placeholder="Type your answer or use the microphone…"
-            />
-            <button className="send" onClick={p.submitAnswer}>
-              <ArrowRight />
-            </button>
-          </div>
+              <div className="composer">
+                <textarea
+                  value={p.answer}
+                  onChange={(e) => p.setAnswer(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      p.submitAnswer();
+                    }
+                  }}
+                  placeholder="Type your technical answer or use the microphone above…"
+                />
+                <button className="send" onClick={() => p.submitAnswer()}>
+                  <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 2. VIEW TAB 2: INTERACTIVE CODING WORKSPACE */}
+          {activeTab === "code" && (
+            <div className="coding-workspace" style={{ margin: 0 }}>
+              <div className="coding-header">
+                <div className="coding-title">
+                  <Code2 size={18} style={{ color: "#38bdf8" }} />
+                  <span>Interactive Algorithmic Code Editor</span>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <select
+                    value={codeLang}
+                    onChange={(e) => setCodeLang(e.target.value)}
+                    style={{
+                      background: "#090d16",
+                      color: "#93c5fd",
+                      border: "1px solid #2b364e",
+                      borderRadius: "8px",
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    <option value="javascript">JavaScript (Node.js)</option>
+                    <option value="python">Python 3</option>
+                    <option value="java">Java</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="sql">SQL</option>
+                    <option value="cpp">C++</option>
+                    <option value="bash">Bash / Shell</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Code Textarea Editor (Blank Black Area for Candidate to write from scratch) */}
+              <div className="code-editor-area">
+                <textarea
+                  className="code-textarea"
+                  value={codeContent}
+                  onChange={(e) => setCodeContent(e.target.value)}
+                  placeholder={`// Write your complete solution from scratch in ${codeLang}...\n// (Declare your functions, classes, and logic here)`}
+                  rows={13}
+                  spellCheck="false"
+                />
+              </div>
+
+              {/* Editor Bottom Actions */}
+              <div className="code-controls">
+                <div style={{ fontSize: "12px", color: "#8f98aa" }}>
+                  Language: <strong style={{ color: "#fff" }}>{codeLang}</strong> • Tab indentation enabled
+                </div>
+
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={handleAnalyzeCode}
+                    disabled={analyzingCode}
+                    style={{ gap: "6px", background: "#1a233b", borderColor: "#435384", color: "#c7d2fe" }}
+                  >
+                    <Sparkles size={14} />
+                    <span>{analyzingCode ? "Analyzing Algorithm..." : "⚡ Run & Analyze Code"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={handleSubmitCodeAnswer}
+                    style={{ background: "#4ade80", color: "#052e16", fontWeight: 800 }}
+                  >
+                    <span>Submit Solution</span>
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* REAL-TIME ALGORITHMIC ANALYSIS PANEL */}
+              {codeAnalysis && (
+                <div className="analysis-panel">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #222c42", paddingBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Activity size={18} style={{ color: codeAnalysis.isCorrect ? "#4ade80" : "#ef4444" }} />
+                      <strong style={{ fontSize: "16px", color: "#fff" }}>AI Algorithmic Code Evaluation</strong>
+                    </div>
+
+                    <span
+                      className="readiness-pill"
+                      style={{
+                        background: codeAnalysis.isCorrect ? "rgba(74, 222, 128, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                        color: codeAnalysis.isCorrect ? "#4ade80" : "#f87171",
+                        borderColor: codeAnalysis.isCorrect ? "rgba(74, 222, 128, 0.3)" : "rgba(239, 68, 68, 0.3)",
+                      }}
+                    >
+                      {codeAnalysis.correctness || (codeAnalysis.isCorrect ? "✓ Correct Solution" : "❌ Incorrect / Invalid Syntax")}
+                    </span>
+                  </div>
+
+                  {/* 4 Quick Stat Cards */}
+                  <div className="analysis-grid">
+                    <div className="analysis-card">
+                      <span className="analysis-card-label">⚡ Detected Approach</span>
+                      <span className="analysis-card-val" style={{ color: codeAnalysis.isCorrect ? "#a5b4fc" : "#ef4444" }}>
+                        {codeAnalysis.detectedApproach || "None"}
+                      </span>
+                    </div>
+
+                    <div className="analysis-card">
+                      <span className="analysis-card-label">⏱ Time Complexity</span>
+                      <span className="analysis-card-val" style={{ color: codeAnalysis.isCorrect ? "#38bdf8" : "#94a3b8" }}>
+                        {codeAnalysis.timeComplexity || "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="analysis-card">
+                      <span className="analysis-card-label">💾 Space Complexity</span>
+                      <span className="analysis-card-val" style={{ color: codeAnalysis.isCorrect ? "#fbbf24" : "#94a3b8" }}>
+                        {codeAnalysis.spaceComplexity || "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="analysis-card">
+                      <span className="analysis-card-label">🧹 Code Quality</span>
+                      <span className="analysis-card-val" style={{ color: (codeAnalysis.codeQuality?.score || 0) >= 6 ? "#4ade80" : "#ef4444" }}>
+                        {codeAnalysis.codeQuality?.score !== undefined ? `${codeAnalysis.codeQuality.score}/10` : "0/10"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Algorithmic Hint Card */}
+                  {codeAnalysis.algorithmicHint && (
+                    <div style={{ marginTop: "14px", padding: "14px 18px", background: "rgba(56, 189, 248, 0.08)", borderRadius: "12px", border: "1px solid rgba(56, 189, 248, 0.25)" }}>
+                      <strong style={{ color: "#38bdf8", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
+                        <Sparkles size={14} />
+                        Algorithmic Guidance & Hint:
+                      </strong>
+                      <p style={{ margin: "6px 0 0", color: "#cbd5e1", fontSize: "13px", lineHeight: "1.5" }}>
+                        {codeAnalysis.algorithmicHint}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Brute Force Comparison Box */}
+                  {codeAnalysis.bruteForce && (
+                    <div className="brute-compare-box">
+                      <strong style={{ color: "#e2e8f0", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <TrendingUp size={15} style={{ color: "#38bdf8" }} />
+                        Algorithmic Comparison & Optimization
+                      </strong>
+                      <p style={{ margin: "6px 0 10px", fontSize: "13px", color: "#cbd5e1" }}>
+                        {codeAnalysis.bruteForce.candidateVsBruteForce}
+                      </p>
+
+                      <div className="brute-compare-grid">
+                        <div className="compare-item">
+                          <strong>🐢 Brute Force Approach:</strong>
+                          <span>{codeAnalysis.bruteForce.approach} ({codeAnalysis.bruteForce.timeComplexity})</span>
+                        </div>
+                        <div className="compare-item">
+                          <strong>🚀 Optimal Target Approach:</strong>
+                          <span>{codeAnalysis.bruteForce.optimalApproach} ({codeAnalysis.bruteForce.optimalTimeComplexity})</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Improvement Suggestions */}
+                  {codeAnalysis.improvements?.length > 0 && (
+                    <div style={{ margin: "16px 0" }}>
+                      <h4 style={{ margin: "0 0 8px", fontSize: "13px", color: "#f59e0b" }}>💡 Improvement Recommendations:</h4>
+                      <ul style={{ margin: 0, paddingLeft: "18px", color: "#cbd5e1", fontSize: "13px", lineHeight: "1.6" }}>
+                        {codeAnalysis.improvements.map((tip, idx) => (
+                          <li key={idx}>{tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
     </main>
@@ -1246,8 +1569,22 @@ function Interview(p) {
 }
 
 function Result({ result, transcript, restart }) {
+  const score = Math.round(result?.score || 0);
+  const readiness = result?.readinessLevel || (score >= 75 ? "Strong Candidate" : score >= 60 ? "Interview Ready" : score >= 40 ? "Improving" : "Beginner");
+
+  const categories = result?.categoryScores || {
+    behavioral: 8,
+    project: 8,
+    technical: 9,
+    coding: 8,
+    communication: 8,
+  };
+
+  const skillScores = result?.skillScores || {};
+  const [showTranscript, setShowTranscript] = useState(false);
+
   return (
-    <main className="page">
+    <main className="page" style={{ maxWidth: "1080px" }}>
       <div
         className="brand"
         onClick={restart}
@@ -1268,20 +1605,81 @@ function Result({ result, transcript, restart }) {
         <span>SDEPrepAI Interviewer</span>
       </div>
 
-      <section className="result-hero">
-        <span className="eyebrow">INTERVIEW COMPLETE</span>
-        <h1>Your interview scorecard</h1>
-        <div className="score">
-          {Math.round(result?.score || 0)}
-          <small>/100</small>
+      <section className="result-hero" style={{ padding: "40px 0 25px" }}>
+        <span className="eyebrow" style={{ color: "#8d9cff" }}>OFFICIAL EVALUATION SCORECARD</span>
+        <h1 style={{ margin: "10px 0 16px" }}>Technical Interview Scorecard</h1>
+
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", margin: "20px 0" }}>
+          <div className="score" style={{ margin: 0, color: score >= 75 ? "#4ade80" : score >= 50 ? "#facc15" : "#f87171" }}>
+            {score}
+            <small>/100</small>
+          </div>
+
+          <div style={{ textAlign: "left" }}>
+            <span className={`readiness-pill ${score >= 75 ? "strong" : score >= 60 ? "ready" : score >= 40 ? "improving" : "beginner"}`}>
+              {readiness}
+            </span>
+            <div style={{ fontSize: "12px", color: "#8f98aa", marginTop: "4px" }}>Evaluation calibrated across 5 rounds</div>
+          </div>
         </div>
-        <p>{result?.summary}</p>
+
+        <p style={{ maxWidth: "750px", fontSize: "15px", lineHeight: "1.6" }}>{result?.summary}</p>
       </section>
 
+      {/* 5-Category Scores */}
+      <div className="scorecard-categories">
+        {[
+          ["Behavioral & Culture", categories.behavioral || 8, "👋"],
+          ["Project Architecture", categories.project || 8, "📂"],
+          ["Technical Depth", categories.technical || 9, "⚡"],
+          ["Coding & DSA", categories.coding || 8, "💻"],
+          ["Communication", categories.communication || 8, "🗣️"],
+        ].map(([title, val, icon]) => (
+          <div className="category-score-card" key={title}>
+            <div style={{ fontSize: "20px" }}>{icon}</div>
+            <div className="category-score-val" style={{ color: val >= 8 ? "#4ade80" : val >= 6 ? "#60a5fa" : "#facc15" }}>
+              {val} <small style={{ fontSize: "13px", color: "#8f98aa" }}>/10</small>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8" }}>{title}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Skill-by-Skill Breakdown */}
+      {Object.keys(skillScores).length > 0 && (
+        <div className="card" style={{ padding: "24px", borderRadius: "18px", margin: "24px 0" }}>
+          <h3 style={{ margin: "0 0 16px", fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Activity size={18} style={{ color: "#8d9cff" }} />
+            Domain Skill-by-Skill Performance Breakdown
+          </h3>
+
+          <div className="skill-breakdown-grid">
+            {Object.entries(skillScores).map(([sk, val]) => (
+              <div className="section-score-bar" key={sk}>
+                <span className="section-score-name" style={{ width: "170px" }}>{sk}</span>
+                <div className="section-score-track">
+                  <div
+                    className="section-score-fill"
+                    style={{
+                      width: `${(val / 10) * 100}%`,
+                      background: val >= 8 ? "linear-gradient(90deg, #22c55e, #4ade80)" : val >= 6 ? "linear-gradient(90deg, #3b82f6, #60a5fa)" : "linear-gradient(90deg, #f59e0b, #facc15)",
+                    }}
+                  />
+                </div>
+                <span className="section-score-num" style={{ color: val >= 8 ? "#4ade80" : val >= 6 ? "#60a5fa" : "#facc15" }}>
+                  {val}/10
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Strengths & Weaknesses */}
       <div className="result-grid">
         <div className="card">
-          <h3>Strengths</h3>
-          {(result?.strengths || []).map((x, i) => (
+          <h3 style={{ color: "#4ade80", display: "flex", alignItems: "center", gap: "6px" }}>✓ Demonstrated Strengths</h3>
+          {(result?.strengths || ["Solid technical fundamentals", "Clear communication"]).map((x, i) => (
             <div className="item" key={i}>
               ✓ {x}
             </div>
@@ -1289,28 +1687,91 @@ function Result({ result, transcript, restart }) {
         </div>
 
         <div className="card">
-          <h3>Areas to improve</h3>
-          {(result?.weaknesses || []).map((x, i) => (
+          <h3 style={{ color: "#f59e0b", display: "flex", alignItems: "center", gap: "6px" }}>⚠️ Areas to Improve</h3>
+          {(result?.weaknesses || ["Handle edge cases in coding", "Provide deeper architectural trade-offs"]).map((x, i) => (
             <div className="item" key={i}>
               • {x}
             </div>
           ))}
         </div>
 
+        {/* Action Plan & Study Roadmap */}
         <div className="card wide-card">
-          <h3>Action plan</h3>
-          {(result?.improvements || []).map((x, i) => (
+          <h3>🎯 Personalized Action Plan & Recommended Study Roadmap</h3>
+          {(result?.improvements || ["Practice algorithmic problems under time constraints", "Review internal engine mechanics"]).map((x, i) => (
             <div className="item" key={i}>
-              {i + 1}. {x}
+              <strong>Step {i + 1}:</strong> {x}
             </div>
           ))}
+
+          {result?.studyTopics?.length > 0 && (
+            <div style={{ marginTop: "16px" }}>
+              <span style={{ fontSize: "12px", color: "#8d9cff", fontWeight: 700, textTransform: "uppercase" }}>Recommended Study Topics:</span>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
+                {result.studyTopics.map((top, i) => (
+                  <span key={i} style={{ background: "#1b233a", border: "1px solid #303c62", color: "#c7d2fe", padding: "6px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: 600 }}>
+                    📖 {top}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <button className="primary" onClick={restart}>
-        <RotateCcw size={18} />
-        Start another interview
-      </button>
+      {/* Transcript Drawer */}
+      <div className="card" style={{ padding: "20px", borderRadius: "18px", marginTop: "24px" }}>
+        <button
+          type="button"
+          onClick={() => setShowTranscript(!showTranscript)}
+          style={{
+            background: "none",
+            border: 0,
+            color: "#e2e8f0",
+            fontWeight: 700,
+            fontSize: "15px",
+            width: "100%",
+            textAlign: "left",
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>💬 Inspect Full Interview Transcript ({transcript.length} exchanges)</span>
+          <span>{showTranscript ? "▲ Hide" : "▼ Show"}</span>
+        </button>
+
+        {showTranscript && (
+          <div style={{ maxHeight: "350px", overflowY: "auto", marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px", padding: "10px", background: "#0a0d14", borderRadius: "12px" }}>
+            {transcript.map((t, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  background: t.type === "User" ? "#1e273d" : "#12151e",
+                  border: `1px solid ${t.type === "User" ? "#2d3b5e" : "#1f2533"}`,
+                  alignSelf: t.type === "User" ? "flex-end" : "flex-start",
+                  maxWidth: "85%",
+                }}
+              >
+                <small style={{ fontWeight: 800, color: t.type === "User" ? "#93c5fd" : "#a855f7", display: "block", marginBottom: "4px" }}>
+                  {t.type === "User" ? "Candidate (You)" : "AI Technical Interviewer"}
+                </small>
+                <span style={{ fontSize: "13px", color: "#e2e8f0", whiteSpace: "pre-wrap" }}>{t.content}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "30px" }}>
+        <button className="primary" onClick={restart}>
+          <RotateCcw size={18} />
+          Start Another Mock Interview
+        </button>
+      </div>
     </main>
   );
 }
@@ -1322,8 +1783,7 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
   { key: "explore", label: "Explore Interviews", icon: "📚" },
   { key: "analytics", label: "Analytics", icon: "📈" },
   { key: "history", label: "History", icon: "📊" },
-  { key: "settings", label: "Settings", icon: "⚙️" },
-  { key: "recruiter", label: "Recruiter", icon: "📅" }
+  { key: "settings", label: "Settings", icon: "⚙️" }
 ];
 
   return (
@@ -1420,7 +1880,82 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
   );
 }
 
-function Dashboard({ dashboard, candidateName, goPractice, goExplore, goAnalytics }) {
+const DOMAIN_GRID_ITEMS = [
+  {
+    id: "python",
+    title: "Python",
+    desc: "Master Python concepts",
+    role: "Python Developer",
+    domain: "python",
+    icon: (
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: "#172554", display: "grid", placeItems: "center", fontSize: 16 }}>
+        🐍
+      </div>
+    ),
+  },
+  {
+    id: "nodejs",
+    title: "Node.js",
+    desc: "Backend & API interviews",
+    role: "Node.js Developer",
+    domain: "backend",
+    icon: (
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: "#052e16", display: "grid", placeItems: "center", color: "#4ade80", fontSize: 13, fontWeight: 800, border: "1px solid #166534" }}>
+        JS
+      </div>
+    ),
+  },
+  {
+    id: "aiml",
+    title: "AI/ML",
+    desc: "Machine Learning interviews",
+    role: "AI / ML Engineer",
+    domain: "ai",
+    icon: (
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: "#3b0764", display: "grid", placeItems: "center", color: "#c084fc", border: "1px solid #6b21a8" }}>
+        <BrainCircuit size={17} />
+      </div>
+    ),
+  },
+  {
+    id: "data",
+    title: "Data",
+    desc: "Data Science & Analytics",
+    role: "Data Engineer",
+    domain: "data",
+    icon: (
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: "#451a03", display: "grid", placeItems: "center", color: "#fbbf24", border: "1px solid #854d0e" }}>
+        <Database size={17} />
+      </div>
+    ),
+  },
+  {
+    id: "cloud",
+    title: "Cloud",
+    desc: "AWS, Azure & Cloud Concepts",
+    role: "Cloud DevOps Engineer",
+    domain: "cloud",
+    icon: (
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: "#083344", display: "grid", placeItems: "center", color: "#22d3ee", border: "1px solid #155e75" }}>
+        <Cloud size={17} />
+      </div>
+    ),
+  },
+  {
+    id: "security",
+    title: "Cybersecurity",
+    desc: "Security & Ethical Hacking",
+    role: "Cybersecurity Analyst",
+    domain: "security",
+    icon: (
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: "#450a0a", display: "grid", placeItems: "center", color: "#f87171", border: "1px solid #991b1b" }}>
+        <ShieldCheck size={17} />
+      </div>
+    ),
+  },
+];
+
+function Dashboard({ dashboard, candidateName, candidateEmail, goPractice, goExplore, goAnalytics, onSelectDomain }) {
   return (
     <>
       <h1>Welcome back, {candidateName || "there"} 👋</h1>
@@ -1428,44 +1963,106 @@ function Dashboard({ dashboard, candidateName, goPractice, goExplore, goAnalytic
         Practice role-specific interviews, track your progress, and build confidence across technical domains.
       </p>
 
-      <div className="candidate-hero">
-        <div>
-          <span className="eyebrow">PERSONALISED INTERVIEW PREP</span>
-          <h2>Find the right interview for your goal.</h2>
-          <p>Choose a domain such as Python, Node.js, AI/ML, Data, Cloud or Cybersecurity and start a structured mock interview.</p>
+      {/* UNIFIED INTERACTIVE PREP CONSOLE & STATS BAR */}
+      <div className="dashboard-prep-console">
+        {/* LEFT COLUMN: TITLE & INTRO */}
+        <div className="prep-intro-col">
+          <div className="target-icon-wrap">
+            <Target size={24} />
+          </div>
+
+          <div>
+            <span className="eyebrow" style={{ color: "#818cf8", fontSize: "11px", fontWeight: 800 }}>
+              PERSONALISED INTERVIEW PREP
+            </span>
+            <h2 style={{ fontSize: "21px", fontWeight: 800, color: "#fff", margin: "6px 0 8px", lineHeight: "1.25" }}>
+              Find the right interview for your goal.
+            </h2>
+            <p style={{ fontSize: "13px", color: "#94a3b8", margin: 0, lineHeight: "1.5" }}>
+              Choose a domain to start a structured mock interview and improve your skills.
+            </p>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <button className="primary" onClick={goExplore}>
-            Explore domains <ArrowRight size={18} />
-          </button>
-          {goAnalytics && (
-            <button
-              className="primary"
-              onClick={goAnalytics}
-              style={{ background: "#242c4d", color: "#aeb8ff", border: "1px solid #4a568b" }}
+
+        {/* MIDDLE COLUMN: 2x3 DOMAIN SHORTCUT CARDS */}
+        <div className="domain-grid">
+          {DOMAIN_GRID_ITEMS.map((item) => (
+            <div
+              key={item.id}
+              className="domain-shortcut-card"
+              onClick={() => onSelectDomain ? onSelectDomain(item.domain, item.role, item.desc) : goPractice()}
             >
-              View Analytics 📈
-            </button>
-          )}
+              <div className="domain-badge-icon">
+                {item.icon}
+              </div>
+
+              <div className="domain-text-wrap">
+                <div className="domain-title">
+                  {item.title}
+                </div>
+                <div className="domain-desc">
+                  {item.desc}
+                </div>
+              </div>
+
+              <ChevronRight size={15} className="domain-chevron" />
+            </div>
+          ))}
+        </div>
+
+        {/* RIGHT COLUMN: 3 COMPACT VERTICAL STAT METRICS */}
+        <div className="stats-col">
+          {/* Interviews */}
+          <div
+            className="stat-row-item"
+            onClick={goAnalytics}
+            title="View interview sessions in analytics"
+          >
+            <div className="stat-icon-badge icon-blue">
+              <Users size={16} />
+            </div>
+            <div>
+              <div className="stat-num">{dashboard.count}</div>
+              <div className="stat-lbl">Interviews</div>
+            </div>
+          </div>
+
+          {/* Avg Score */}
+          <div
+            className="stat-row-item stat-item-divider"
+            onClick={goAnalytics}
+            title="View average score in analytics"
+          >
+            <div className="stat-icon-badge icon-green">
+              <TrendingUp size={16} />
+            </div>
+            <div>
+              <div className="stat-num">{dashboard.avg}</div>
+              <div className="stat-lbl">Avg. Score</div>
+            </div>
+          </div>
+
+          {/* Best Score */}
+          <div
+            className="stat-row-item stat-item-divider"
+            onClick={goAnalytics}
+            title="View best score in analytics"
+          >
+            <div className="stat-icon-badge icon-purple">
+              <Trophy size={16} />
+            </div>
+            <div>
+              <div className="stat-num">{dashboard.best}</div>
+              <div className="stat-lbl">Best Score</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="stat-grid">
-        <div className="stat-card" style={{ cursor: "pointer" }} onClick={goAnalytics}>
-          <span className="stat-label">Interviews ↗</span>
-          <span className="stat-value">{dashboard.count}</span>
-        </div>
-        <div className="stat-card" style={{ cursor: "pointer" }} onClick={goAnalytics}>
-          <span className="stat-label">Avg Score ↗</span>
-          <span className="stat-value">{dashboard.avg}</span>
-        </div>
-        <div className="stat-card" style={{ cursor: "pointer" }} onClick={goAnalytics}>
-          <span className="stat-label">Best ↗</span>
-          <span className="stat-value">{dashboard.best}</span>
-        </div>
-      </div>
+      {/* STUDENT ACTIVITY STREAK & CONTRIBUTION HEATMAP */}
+      <ActivityHeatmap candidateEmail={candidateEmail} onStartPractice={goPractice} />
 
-      <div className="section-heading-inline">
+      <div className="section-heading-inline" style={{ marginTop: 28 }}>
         <div>
           <h2>Recent Interviews</h2>
           <p className="muted">Your latest practice sessions and scores.</p>

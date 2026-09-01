@@ -28,8 +28,27 @@ router.post("/login", async (req,res) => {
   try {
     const {email,password,role} = req.body || {};
     if (!email || !password || !["admin","recruiter"].includes(role)) return res.status(400).json({error:"Email, password and role are required"});
-    const user = findUserByEmail(email.trim().toLowerCase());
-    if (!user || user.role !== role) return res.status(401).json({error:"Invalid email, password or role"});
+    const cleanEmail = email.trim().toLowerCase();
+    let user = findUserByEmail(cleanEmail);
+
+    // Instant fallback sync for admin credentials from process.env
+    const envAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    const envAdminPassword = process.env.ADMIN_PASSWORD;
+    if (role === "admin" && envAdminEmail && cleanEmail === envAdminEmail && password === envAdminPassword) {
+      if (!user || user.role !== "admin") {
+        const hash = await bcrypt.hash(envAdminPassword, 12);
+        db.prepare(
+          `INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,?) ON CONFLICT(email) DO UPDATE SET name=excluded.name,password_hash=excluded.password_hash,role='admin'`
+        ).run(process.env.ADMIN_NAME || "Ashutosh Singh", envAdminEmail, hash, "admin");
+        user = findUserByEmail(envAdminEmail);
+      }
+      return res.json({success:true,token:signUser(user),user:findUserById(user.id)});
+    }
+
+    if (!user) return res.status(401).json({error:"Invalid email or password"});
+    if (role === "admin" && user.role !== "admin") return res.status(401).json({error:"Invalid email, password or role"});
+    if (role === "recruiter" && user.role !== "recruiter" && user.role !== "admin") return res.status(401).json({error:"Invalid email, password or role"});
+
     const ok = await bcrypt.compare(password,user.password_hash || "");
     if (!ok) return res.status(401).json({error:"Invalid email or password"});
     res.json({success:true,token:signUser(user),user:findUserById(user.id)});
