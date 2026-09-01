@@ -1,4 +1,4 @@
-# 🚀 SDEPrepAI Interview
+#         SDEPrepAI Interview
 
 <div align="center">
 
@@ -39,9 +39,9 @@ Practice realistic interviews, improve communication, receive AI-powered feedbac
 
 The application supports three different user roles:
 
-- 👨‍💻 Candidate
-- 🧑‍💼 Recruiter
-- 👑 Administrator
+-  Candidate
+-  Recruiter
+-  Administrator
 
 Candidates can participate in practice interviews, answer AI-generated questions, use voice interaction and camera features, and receive interview evaluation and feedback.
 
@@ -51,9 +51,9 @@ Administrators can monitor users, interviews, platform activity, and statistics 
 
 ---
 
-# ✨ Key Features
+#    Key Features
 
-## 🤖 AI-Powered Interview Experience
+##  AI-Powered Interview Experience
 
 - AI-generated interview questions
 - AI-based answer evaluation
@@ -70,15 +70,15 @@ The platform supports browser-based voice interaction.
 
 Features include:
 
-- 🎤 Speech recognition
-- 🔊 Speech synthesis
-- 🗣️ Voice-based answers
-- 📝 Interview transcript generation
-- 💾 Transcript persistence
+-   Speech recognition
+-   Speech synthesis
+-   Voice-based answers
+-   Interview transcript generation
+-   Transcript persistence
 
 ---
 
-## 📷 Camera Support
+##  Camera Support
 
 Candidates can enable their webcam during an interview to simulate a more realistic interview environment.
 
@@ -95,16 +95,16 @@ Features include:
 
 Candidates can:
 
-- 🔐 Login using Email OTP authentication
-- 🎯 Participate in practice interviews
-- 📩 Open recruiter-issued interview invitations
-- 🤖 Answer AI-generated interview questions
-- 🎤 Use voice interaction
-- 📷 Enable camera during interviews
-- 📝 View interview transcripts
-- 📊 Receive AI evaluation
-- 📈 Track interview performance
-- 🗂️ Access interview history
+-  Login using Email OTP authentication
+-  Participate in practice interviews
+-  Open recruiter-issued interview invitations
+-  Answer AI-generated interview questions
+-  Use voice interaction
+-  Enable camera during interviews
+-  View interview transcripts
+-  Receive AI evaluation
+-  Track interview performance
+-  Access interview history
 
 ---
 
@@ -114,19 +114,19 @@ Recruiters have access to a dedicated dashboard for managing interviews and cand
 
 Features include:
 
-- 🔐 Secure recruiter authentication
-- 🛠️ Multi-step interview builder
-- 👥 Candidate management
-- 📩 Candidate interview invitations
-- 📧 Email-based invitations
-- 📄 Interview management
-- 📊 Candidate performance review
-- 📝 Interview reports
-- 🎯 Candidate evaluation
+-  Secure recruiter authentication
+-  Multi-step interview builder
+-  Candidate management
+-  Candidate interview invitations
+-  Email-based invitations
+-  Interview management
+-  Candidate performance review
+-  Interview reports
+-  Candidate evaluation
 
 ---
 
-# 👑 Admin Portal
+#  Admin Portal
 
 Administrators can monitor and manage the platform.
 
