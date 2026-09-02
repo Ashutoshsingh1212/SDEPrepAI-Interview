@@ -42,6 +42,8 @@ import {
   Calendar,
   Zap,
   Target,
+  Menu,
+  X
 } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
@@ -184,314 +186,329 @@ export default function AdminDashboard({ user, onLogout }) {
     return matchesSearch && matchesRole;
   });
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const renderNavContent = () => (
+    <>
+      {/* Brand Header */}
+      <div style={{ padding: "24px 20px 18px", borderBottom: "1px solid #1a2233", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              background: "linear-gradient(135deg, #6366f1, #38bdf8)",
+              display: "grid",
+              placeItems: "center",
+              color: "#fff",
+              boxShadow: "0 0 20px rgba(99, 102, 241, 0.4)",
+            }}
+          >
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <span style={{ fontSize: 16, fontWeight: 900, letterSpacing: "-0.02em", color: "#fff", display: "block" }}>
+              SDEPrepAI
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#818cf8", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Admin Portal
+            </span>
+          </div>
+        </div>
+        {mobileMenuOpen && (
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ background: "#182030", border: "1px solid #29354d", color: "#94a3b8", borderRadius: 8, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* User Info Profile Box */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #1a2233", background: "rgba(17, 22, 34, 0.4)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: "linear-gradient(135deg, #ef4444, #f59e0b)",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: 14,
+              display: "grid",
+              placeItems: "center",
+              textTransform: "uppercase",
+            }}
+          >
+            {user?.name ? user.name.charAt(0) : "A"}
+          </div>
+          <div style={{ overflow: "hidden", flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+              {user?.name || "Administrator"}
+            </div>
+            <div style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+              {user?.email || "admin@sdeprepai.com"}
+            </div>
+          </div>
+        </div>
+        <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 6, background: "rgba(239, 68, 68, 0.15)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.3)", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>
+          <ShieldCheck size={11} />
+          Super Administrator
+        </div>
+      </div>
+
+      {/* Navigation Items (Left-Most Side Menu) */}
+      <nav style={{ flex: 1, padding: "18px 14px", display: "flex", flexDirection: "column", gap: 6, overflowY: "auto" }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", padding: "0 10px 6px" }}>
+          Intelligence & Analytics
+        </div>
+
+        {/* 1. Analytics & Visualizations */}
+        <button
+          type="button"
+          onClick={() => { setActiveTab("analytics"); setMobileMenuOpen(false); }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            padding: "11px 14px",
+            borderRadius: 12,
+            border: activeTab === "analytics" ? "1px solid #818cf8" : "1px solid transparent",
+            background: activeTab === "analytics" ? "linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.15))" : "transparent",
+            color: activeTab === "analytics" ? "#fff" : "#94a3b8",
+            fontWeight: 750,
+            fontSize: 13,
+            cursor: "pointer",
+            transition: "all 0.18s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Activity size={16} style={{ color: activeTab === "analytics" ? "#818cf8" : "#64748b" }} />
+            <span>Analytics & Radar Charts</span>
+          </div>
+          <span
+            style={{
+              background: activeTab === "analytics" ? "#818cf8" : "#171d2b",
+              color: activeTab === "analytics" ? "#0f172a" : "#818cf8",
+              padding: "2px 7px",
+              borderRadius: 8,
+              fontSize: 10.5,
+              fontWeight: 800,
+            }}
+          >
+            LIVE
+          </span>
+        </button>
+
+        <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", padding: "14px 10px 6px" }}>
+          Directories & Management
+        </div>
+
+        {/* 2. Students / Candidates */}
+        <button
+          type="button"
+          onClick={() => { setActiveTab("students"); setMobileMenuOpen(false); }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            padding: "11px 14px",
+            borderRadius: 12,
+            border: activeTab === "students" ? "1px solid #6366f1" : "1px solid transparent",
+            background: activeTab === "students" ? "linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.1))" : "transparent",
+            color: activeTab === "students" ? "#fff" : "#94a3b8",
+            fontWeight: 750,
+            fontSize: 13,
+            cursor: "pointer",
+            transition: "all 0.18s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Users size={16} style={{ color: activeTab === "students" ? "#818cf8" : "#64748b" }} />
+            <span>Students / Candidates</span>
+          </div>
+          <span
+            style={{
+              background: activeTab === "students" ? "#6366f1" : "#171d2b",
+              color: "#fff",
+              padding: "2px 8px",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: 800,
+            }}
+          >
+            {students.length}
+          </span>
+        </button>
+
+        {/* 3. Recruiters & Staff */}
+        <button
+          type="button"
+          onClick={() => { setActiveTab("recruiters"); setMobileMenuOpen(false); }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            padding: "11px 14px",
+            borderRadius: 12,
+            border: activeTab === "recruiters" ? "1px solid #38bdf8" : "1px solid transparent",
+            background: activeTab === "recruiters" ? "linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.1))" : "transparent",
+            color: activeTab === "recruiters" ? "#fff" : "#94a3b8",
+            fontWeight: 750,
+            fontSize: 13,
+            cursor: "pointer",
+            transition: "all 0.18s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Briefcase size={16} style={{ color: activeTab === "recruiters" ? "#38bdf8" : "#64748b" }} />
+            <span>Recruiters & Staff</span>
+          </div>
+          <span
+            style={{
+              background: activeTab === "recruiters" ? "#38bdf8" : "#171d2b",
+              color: activeTab === "recruiters" ? "#082f49" : "#94a3b8",
+              padding: "2px 8px",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: 800,
+            }}
+          >
+            {recruiters.length}
+          </span>
+        </button>
+
+        {/* 4. All Interview Sessions */}
+        <button
+          type="button"
+          onClick={() => { setActiveTab("interviews"); setMobileMenuOpen(false); }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            padding: "11px 14px",
+            borderRadius: 12,
+            border: activeTab === "interviews" ? "1px solid #4ade80" : "1px solid transparent",
+            background: activeTab === "interviews" ? "linear-gradient(135deg, rgba(74, 222, 128, 0.18), rgba(99, 102, 241, 0.1))" : "transparent",
+            color: activeTab === "interviews" ? "#fff" : "#94a3b8",
+            fontWeight: 750,
+            fontSize: 13,
+            cursor: "pointer",
+            transition: "all 0.18s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <TrendingUp size={16} style={{ color: activeTab === "interviews" ? "#4ade80" : "#64748b" }} />
+            <span>All Interview Sessions</span>
+          </div>
+          <span
+            style={{
+              background: activeTab === "interviews" ? "#4ade80" : "#171d2b",
+              color: activeTab === "interviews" ? "#052e16" : "#94a3b8",
+              padding: "2px 8px",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: 800,
+            }}
+          >
+            {interviews.length}
+          </span>
+        </button>
+      </nav>
+
+      {/* Sidebar Footer Controls */}
+      <div style={{ padding: "16px 18px", borderTop: "1px solid #1a2233", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11, color: "#64748b" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e" }} />
+            Platform Online
+          </span>
+          <span>API v1.0</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={loadDashboardData}
+          disabled={loading}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 7,
+            background: "#141926",
+            border: "1px solid #28334a",
+            color: "#c7d2fe",
+            borderRadius: 10,
+            padding: "9px",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            width: "100%",
+          }}
+        >
+          <RefreshCw size={13} className={loading ? "spin" : ""} />
+          Sync Platform Data
+        </button>
+
+        <button
+          type="button"
+          onClick={onLogout}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 7,
+            background: "#281216",
+            border: "1px solid #572027",
+            color: "#ff9ca5",
+            borderRadius: 10,
+            padding: "9px",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            width: "100%",
+          }}
+        >
+          <LogOut size={13} />
+          Logout
+        </button>
+      </div>
+    </>
+  );
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#08090c", color: "#f4f5f7" }}>
+    <div className="admin-layout" style={{ display: "flex", minHeight: "100vh", background: "#08090c", color: "#f4f5f7" }}>
+      {/* Mobile Drawer Backdrop */}
+      <div
+        className={`mobile-nav-backdrop ${mobileMenuOpen ? "open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Off-canvas Drawer */}
+      <aside className={`mobile-nav-drawer ${mobileMenuOpen ? "open" : ""}`}>
+        {renderNavContent()}
+      </aside>
+
       {/* =========================================================
-          LEFT-MOST SIDEBAR NAVIGATION
+          DESKTOP LEFT-MOST SIDEBAR NAVIGATION
       ========================================================= */}
-      <aside
-        style={{
-          width: 280,
-          background: "#0c0f16",
-          borderRight: "1px solid #1e2535",
-          display: "flex",
-          flexDirection: "column",
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-          flexShrink: 0,
-          zIndex: 50,
-          boxSizing: "border-box",
-        }}
-      >
-        {/* Brand Header */}
-        <div style={{ padding: "24px 20px 18px", borderBottom: "1px solid #1a2233" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                background: "linear-gradient(135deg, #6366f1, #38bdf8)",
-                display: "grid",
-                placeItems: "center",
-                color: "#fff",
-                boxShadow: "0 0 20px rgba(99, 102, 241, 0.4)",
-              }}
-            >
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <span style={{ fontSize: 16, fontWeight: 900, letterSpacing: "-0.02em", color: "#fff", display: "block" }}>
-                SDEPrepAI
-              </span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#818cf8", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                Admin Portal
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* User Info Profile Box */}
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid #1a2233", background: "rgba(17, 22, 34, 0.4)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: "linear-gradient(135deg, #ef4444, #f59e0b)",
-                color: "#fff",
-                fontWeight: 800,
-                fontSize: 14,
-                display: "grid",
-                placeItems: "center",
-                textTransform: "uppercase",
-              }}
-            >
-              {user?.name ? user.name.charAt(0) : "A"}
-            </div>
-            <div style={{ overflow: "hidden", flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                {user?.name || "Administrator"}
-              </div>
-              <div style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                {user?.email || "admin@sdeprepai.com"}
-              </div>
-            </div>
-          </div>
-          <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 6, background: "rgba(239, 68, 68, 0.15)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.3)", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>
-            <ShieldCheck size={11} />
-            Super Administrator
-          </div>
-        </div>
-
-        {/* Navigation Items (Left-Most Side Menu) */}
-        <nav style={{ flex: 1, padding: "18px 14px", display: "flex", flexDirection: "column", gap: 6, overflowY: "auto" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", padding: "0 10px 6px" }}>
-            Intelligence & Analytics
-          </div>
-
-          {/* 1. Analytics & Visualizations */}
-          <button
-            type="button"
-            onClick={() => setActiveTab("analytics")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: activeTab === "analytics" ? "1px solid #818cf8" : "1px solid transparent",
-              background: activeTab === "analytics" ? "linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.15))" : "transparent",
-              color: activeTab === "analytics" ? "#fff" : "#94a3b8",
-              fontWeight: 750,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.18s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Activity size={16} style={{ color: activeTab === "analytics" ? "#818cf8" : "#64748b" }} />
-              <span>Analytics & Radar Charts</span>
-            </div>
-            <span
-              style={{
-                background: activeTab === "analytics" ? "#818cf8" : "#171d2b",
-                color: activeTab === "analytics" ? "#0f172a" : "#818cf8",
-                padding: "2px 7px",
-                borderRadius: 8,
-                fontSize: 10.5,
-                fontWeight: 800,
-              }}
-            >
-              LIVE
-            </span>
-          </button>
-
-          <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", padding: "14px 10px 6px" }}>
-            Directories & Management
-          </div>
-
-          {/* 2. Students / Candidates */}
-          <button
-            type="button"
-            onClick={() => setActiveTab("students")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: activeTab === "students" ? "1px solid #6366f1" : "1px solid transparent",
-              background: activeTab === "students" ? "linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.1))" : "transparent",
-              color: activeTab === "students" ? "#fff" : "#94a3b8",
-              fontWeight: 750,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.18s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Users size={16} style={{ color: activeTab === "students" ? "#818cf8" : "#64748b" }} />
-              <span>Students / Candidates</span>
-            </div>
-            <span
-              style={{
-                background: activeTab === "students" ? "#6366f1" : "#171d2b",
-                color: "#fff",
-                padding: "2px 8px",
-                borderRadius: 8,
-                fontSize: 11,
-                fontWeight: 800,
-              }}
-            >
-              {students.length}
-            </span>
-          </button>
-
-          {/* 3. Recruiters & Staff */}
-          <button
-            type="button"
-            onClick={() => setActiveTab("recruiters")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: activeTab === "recruiters" ? "1px solid #38bdf8" : "1px solid transparent",
-              background: activeTab === "recruiters" ? "linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.1))" : "transparent",
-              color: activeTab === "recruiters" ? "#fff" : "#94a3b8",
-              fontWeight: 750,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.18s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Briefcase size={16} style={{ color: activeTab === "recruiters" ? "#38bdf8" : "#64748b" }} />
-              <span>Recruiters & Staff</span>
-            </div>
-            <span
-              style={{
-                background: activeTab === "recruiters" ? "#38bdf8" : "#171d2b",
-                color: activeTab === "recruiters" ? "#082f49" : "#94a3b8",
-                padding: "2px 8px",
-                borderRadius: 8,
-                fontSize: 11,
-                fontWeight: 800,
-              }}
-            >
-              {recruiters.length}
-            </span>
-          </button>
-
-          {/* 4. All Interview Sessions */}
-          <button
-            type="button"
-            onClick={() => setActiveTab("interviews")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: activeTab === "interviews" ? "1px solid #4ade80" : "1px solid transparent",
-              background: activeTab === "interviews" ? "linear-gradient(135deg, rgba(74, 222, 128, 0.18), rgba(99, 102, 241, 0.1))" : "transparent",
-              color: activeTab === "interviews" ? "#fff" : "#94a3b8",
-              fontWeight: 750,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.18s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <TrendingUp size={16} style={{ color: activeTab === "interviews" ? "#4ade80" : "#64748b" }} />
-              <span>All Interview Sessions</span>
-            </div>
-            <span
-              style={{
-                background: activeTab === "interviews" ? "#4ade80" : "#171d2b",
-                color: activeTab === "interviews" ? "#052e16" : "#94a3b8",
-                padding: "2px 8px",
-                borderRadius: 8,
-                fontSize: 11,
-                fontWeight: 800,
-              }}
-            >
-              {interviews.length}
-            </span>
-          </button>
-        </nav>
-
-        {/* Sidebar Footer Controls */}
-        <div style={{ padding: "16px 18px", borderTop: "1px solid #1a2233", display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11, color: "#64748b" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e" }} />
-              Platform Online
-            </span>
-            <span>API v1.0</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={loadDashboardData}
-            disabled={loading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 7,
-              background: "#141926",
-              border: "1px solid #28334a",
-              color: "#c7d2fe",
-              borderRadius: 10,
-              padding: "9px",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              width: "100%",
-            }}
-          >
-            <RefreshCw size={13} className={loading ? "spin" : ""} />
-            Sync Platform Data
-          </button>
-
-          <button
-            type="button"
-            onClick={onLogout}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 7,
-              background: "#281216",
-              border: "1px solid #572027",
-              color: "#ff9ca5",
-              borderRadius: 10,
-              padding: "9px",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              width: "100%",
-            }}
-          >
-            <LogOut size={13} />
-            Logout
-          </button>
-        </div>
+      <aside className="admin-sidebar">
+        {renderNavContent()}
       </aside>
 
       {/* =========================================================
           MAIN RIGHT CONTENT AREA
       ========================================================= */}
-      <main style={{ flex: 1, minWidth: 0, padding: "32px 36px 80px", overflowY: "auto" }}>
+      <main className="admin-main" style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
         {/* Main Header */}
         <header
           style={{
@@ -499,26 +516,39 @@ export default function AdminDashboard({ user, onLogout }) {
             justifyContent: "space-between",
             alignItems: "flex-start",
             flexWrap: "wrap",
-            gap: 20,
+            gap: 16,
             marginBottom: 28,
             paddingBottom: 20,
             borderBottom: "1px solid #1a2233",
           }}
         >
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#818cf8", fontWeight: 800, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-              <ShieldCheck size={14} />
-              ADMINISTRATIVE OVERSIGHT
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flex: 1, minWidth: 260 }}>
+            {/* Mobile hamburger menu toggle */}
+            <button
+              type="button"
+              className="mobile-nav-toggle-btn"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open Admin Menu"
+              title="Open Admin Menu"
+            >
+              <Menu size={20} />
+            </button>
+
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#818cf8", fontWeight: 800, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                <ShieldCheck size={14} />
+                ADMINISTRATIVE OVERSIGHT
+              </div>
+              <h1 style={{ margin: "6px 0 4px", fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 900, letterSpacing: "-0.03em" }}>
+                {activeTab === "analytics" && "Platform Analytics & Competency Intelligence"}
+                {activeTab === "students" && "Students & Candidates Directory"}
+                {activeTab === "recruiters" && "Recruiters & Staff Directory"}
+                {activeTab === "interviews" && "All Interview Sessions & History"}
+              </h1>
+              <p style={{ color: "#8f98aa", margin: 0, fontSize: 13 }}>
+                Comprehensive performance analytics, skill matrix radar charts, student practice duration, and recruiter oversight.
+              </p>
             </div>
-            <h1 style={{ margin: "6px 0 4px", fontSize: "28px", fontWeight: 900, letterSpacing: "-0.03em" }}>
-              {activeTab === "analytics" && "Platform Analytics & Competency Intelligence"}
-              {activeTab === "students" && "Students & Candidates Directory"}
-              {activeTab === "recruiters" && "Recruiters & Staff Directory"}
-              {activeTab === "interviews" && "All Interview Sessions & History"}
-            </h1>
-            <p style={{ color: "#8f98aa", margin: 0, fontSize: 13.5 }}>
-              Comprehensive performance analytics, skill matrix radar charts, student practice duration, and recruiter oversight.
-            </p>
           </div>
 
           {/* Search bar inside header */}

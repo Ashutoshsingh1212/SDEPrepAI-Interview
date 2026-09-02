@@ -2289,3 +2289,493 @@ body{margin:0;min-width:320px;background:radial-gradient(circle at 50% -20%,#1a2
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   COMPREHENSIVE 9-TIER RESPONSIVE ARCHITECTURE
+   Breakpoints:
+   1. 320px  → Small mobile
+   2. 375px  → Mobile
+   3. 480px  → Large mobile
+   4. 768px  → Tablet
+   5. 1024px → Small laptop / large tablet
+   6. 1280px → Laptop
+   7. 1440px → Large laptop
+   8. 1600px → Desktop / PC
+   9. 1920px+ → Large desktop
+========================================================= */
+
+/* Prevent any accidental horizontal overflow */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Mobile Off-Canvas Drawer & Touch Navigation */
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.mobile-nav-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 290px;
+  max-width: 85vw;
+  background: #0b0e14;
+  border-right: 1px solid #1f273b;
+  z-index: 999;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 12px 0 35px rgba(0, 0, 0, 0.6);
+}
+
+.mobile-nav-drawer.open {
+  transform: translateX(0);
+}
+
+.mobile-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #1f273b;
+}
+
+.mobile-drawer-close {
+  background: #141924;
+  border: 1px solid #232d42;
+  color: #94a3b8;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.mobile-drawer-links {
+  flex: 1;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.mobile-drawer-user {
+  padding: 16px 18px;
+  border-top: 1px solid #1f273b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #090c10;
+}
+
+.mobile-nav-toggle-btn {
+  display: none;
+  background: #141924;
+  border: 1px solid #232d42;
+  color: #f1f5f9;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  background: rgba(11, 14, 20, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid #1f273b;
+  z-index: 900;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.mobile-bottom-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: #8f98aa;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.mobile-bottom-btn.active {
+  color: #8d9cff;
+}
+
+/* ---------------------------------------------------------
+   1. LARGE DESKTOP (1920px+)
+--------------------------------------------------------- */
+@media (min-width: 1920px) {
+  .page {
+    max-width: 1560px;
+  }
+  .shell-content {
+    max-width: 1560px;
+    margin: 0 auto;
+  }
+  .he-layout-container {
+    max-width: 1560px;
+    margin: 0 auto;
+  }
+  .admin-main {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .recruiter-main {
+    max-width: 1560px;
+  }
+}
+
+/* ---------------------------------------------------------
+   2. DESKTOP / PC (1600px to 1919px)
+--------------------------------------------------------- */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .page {
+    max-width: 1480px;
+  }
+  .shell-content {
+    max-width: 1480px;
+  }
+}
+
+/* ---------------------------------------------------------
+   3. LARGE LAPTOP (1440px to 1599px)
+--------------------------------------------------------- */
+@media (min-width: 1440px) and (max-width: 1599px) {
+  .page {
+    max-width: 1380px;
+  }
+}
+
+/* ---------------------------------------------------------
+   4. LAPTOP (1280px to 1439px)
+--------------------------------------------------------- */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .page {
+    max-width: 1220px;
+  }
+  .he-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------
+   5. SMALL LAPTOP / LARGE TABLET (1024px to 1279px)
+--------------------------------------------------------- */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .shell-content {
+    padding: 24px 28px;
+  }
+  .sidebar {
+    width: 200px;
+  }
+  .he-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .interview-layout {
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .dashboard-prep-console {
+    grid-template-columns: 1fr 1.6fr 0.9fr;
+    gap: 16px;
+    padding: 20px;
+  }
+}
+
+/* ---------------------------------------------------------
+   6. TABLET (768px to 1023px)
+--------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .mobile-nav-toggle-btn {
+    display: grid;
+  }
+  .admin-sidebar,
+  .sidebar {
+    display: none !important;
+  }
+  .shell-body {
+    flex-direction: column;
+  }
+  .shell-content {
+    padding: 22px 20px 80px;
+  }
+  .admin-main {
+    padding: 22px 20px 80px !important;
+  }
+  .interview-layout {
+    grid-template-columns: 1fr;
+  }
+  .orb-card {
+    position: static;
+    max-height: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+  }
+  .camera-box {
+    width: 160px;
+    height: 100px;
+    margin-bottom: 0;
+  }
+  .orb-details-section {
+    flex: 1;
+    align-items: flex-start;
+  }
+  .orb-controls {
+    flex-direction: row;
+    width: 100%;
+  }
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------
+   7. LARGE MOBILE (480px to 767px)
+--------------------------------------------------------- */
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+  .shell-header {
+    padding: 12px 16px;
+  }
+  .shell-content {
+    padding: 16px 14px 80px;
+  }
+  .page {
+    padding: 12px 14px 80px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-prep-console {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .prep-intro-col {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .stats-col {
+    flex-direction: column;
+    gap: 10px;
+    border-left: none;
+    border-top: 1px solid #1f273b;
+    padding-top: 14px;
+  }
+  .stat-item-divider {
+    border-left: none;
+    border-top: 1px solid #1a2335;
+    padding-left: 0;
+    padding-top: 10px;
+  }
+  .table-card {
+    border-radius: 14px;
+  }
+  .candidate-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  .hero h1 {
+    font-size: clamp(30px, 8vw, 44px);
+  }
+  .score {
+    font-size: 58px;
+  }
+  .orb-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .camera-box {
+    width: 100%;
+    max-width: 100%;
+    height: 140px;
+  }
+  .orb-controls {
+    flex-direction: column;
+  }
+}
+
+/* ---------------------------------------------------------
+   8. MOBILE (375px to 479px)
+--------------------------------------------------------- */
+@media (max-width: 479px) {
+  .shell-content {
+    padding: 14px 12px 85px;
+  }
+  .card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .setup {
+    padding: 18px 14px;
+  }
+  .brand span {
+    font-size: 14px;
+  }
+  .logo {
+    width: 30px;
+    height: 30px;
+  }
+  .user-chip {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  .rounds-stepper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .round-step {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .chat-head {
+    padding: 14px;
+  }
+  .bubble {
+    max-width: 95%;
+    font-size: 13px;
+  }
+  .composer textarea {
+    font-size: 13px;
+  }
+  .send {
+    width: 46px;
+    height: 46px;
+  }
+  .code-textarea {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+  .builder-progress {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .builder-step {
+    white-space: nowrap;
+    font-size: 11.5px;
+  }
+  .role-grid.compact {
+    grid-template-columns: 1fr;
+  }
+  .domain-grid {
+    grid-template-columns: 1fr;
+  }
+  .skill-grid {
+    gap: 6px;
+  }
+  .skill-chip {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ---------------------------------------------------------
+   9. SMALL MOBILE (320px to 374px)
+--------------------------------------------------------- */
+@media (max-width: 374px) {
+  .shell-header {
+    padding: 10px 12px;
+  }
+  .brand span {
+    font-size: 13px;
+  }
+  .hero h1 {
+    font-size: 26px;
+  }
+  .hero p {
+    font-size: 14px;
+  }
+  .card {
+    padding: 14px 10px;
+  }
+  .primary {
+    width: 100%;
+    justify-content: center;
+    font-size: 13.5px;
+    padding: 11px;
+  }
+  .timer {
+    font-size: 12px;
+  }
+  .danger {
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+  .mic {
+    font-size: 11.5px;
+    padding: 8px 10px;
+  }
+  .he-start-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .mobile-bottom-nav {
+    height: 56px;
+  }
+  .mobile-bottom-btn {
+    font-size: 10px;
+  }
+}

@@ -31,7 +31,9 @@ import {
   Target,
   ChevronRight,
   Users,
-  Trophy
+  Trophy,
+  Menu,
+  X
 } from "lucide-react";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -1777,17 +1779,124 @@ function Result({ result, transcript, restart }) {
 }
 
 function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, theme, onToggleTheme, children }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const navItems = [
-  { key: "dashboard", label: "Dashboard", icon: "🏠" },
-  { key: "setup", label: "Practice", icon: "🎯" },
-  { key: "explore", label: "Explore Interviews", icon: "📚" },
-  { key: "analytics", label: "Analytics", icon: "📈" },
-  { key: "history", label: "History", icon: "📊" },
-  { key: "settings", label: "Settings", icon: "⚙️" }
-];
+    { key: "dashboard", label: "Dashboard", icon: "🏠" },
+    { key: "setup", label: "Practice", icon: "🎯" },
+    { key: "explore", label: "Explore Interviews", icon: "📚" },
+    { key: "analytics", label: "Analytics", icon: "📈" },
+    { key: "history", label: "History", icon: "📊" },
+    { key: "settings", label: "Settings", icon: "⚙️" }
+  ];
+
+  const handleNav = (key) => {
+    setMobileMenuOpen(false);
+    if (onNav) onNav(key);
+  };
 
   return (
     <div className="app-shell">
+      {/* Mobile Navigation Backdrop */}
+      <div 
+        className={`mobile-nav-backdrop ${mobileMenuOpen ? "open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Navigation Drawer */}
+      <aside className={`mobile-nav-drawer ${mobileMenuOpen ? "open" : ""}`}>
+        <div className="mobile-drawer-header">
+          <div className="brand" onClick={() => handleNav("dashboard")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="logo">
+              <Sparkles size={18} />
+            </div>
+            <span style={{ fontWeight: 800, fontSize: "16px" }}>SDEPrepAI</span>
+          </div>
+          <button 
+            type="button" 
+            className="mobile-drawer-close"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <nav className="mobile-drawer-links">
+          {navItems.map(i => (
+            <button
+              key={i.key}
+              className={active === i.key ? "nav-item active" : "nav-item"}
+              onClick={() => handleNav(i.key)}
+              style={{ width: "100%", justifyContent: "flex-start", padding: "12px 14px", borderRadius: "10px" }}
+            >
+              <span style={{ fontSize: "18px" }}>{i.icon}</span> 
+              <span>{i.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="mobile-drawer-user">
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "#111520", borderRadius: "10px", border: "1px solid #1f273b" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#6366f1", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13 }}>
+              {(candidateEmail || candidateName || "C").charAt(0).toUpperCase()}
+            </div>
+            <div style={{ overflow: "hidden", flex: 1 }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {candidateName || "Candidate"}
+              </div>
+              <div style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {candidateEmail || "candidate@sdeprepai.com"}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                style={{
+                  flex: 1,
+                  background: "#141926",
+                  border: "1px solid #28334a",
+                  color: "inherit",
+                  padding: "9px 12px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  fontSize: "12px",
+                  fontWeight: 600
+                }}
+              >
+                {theme === "light" ? <Moon size={14} style={{ color: "#6366f1" }} /> : <Sun size={14} style={{ color: "#fbbf24" }} />}
+                <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+              style={{
+                background: "rgba(239, 68, 68, 0.15)",
+                color: "#f87171",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                padding: "9px 14px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: "12px"
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Top Header */}
       <header
         className="shell-header"
         style={{
@@ -1796,27 +1905,40 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
           alignItems: "center"
         }}
       >
-        <div
-          className="brand"
-          onClick={() => onNav && onNav("dashboard")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onNav && onNav("dashboard");
-            }
-          }}
-          title="Return to Home Dashboard"
-          style={{ cursor: "pointer", userSelect: "none" }}
-        >
-          <div className="logo">
-            <Sparkles size={18} />
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Mobile hamburger menu toggle */}
+          <button
+            type="button"
+            className="mobile-nav-toggle-btn"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open Navigation Menu"
+            title="Open Navigation Menu"
+          >
+            <Menu size={20} />
+          </button>
+
+          <div
+            className="brand"
+            onClick={() => handleNav("dashboard")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleNav("dashboard");
+              }
+            }}
+            title="Return to Home Dashboard"
+            style={{ cursor: "pointer", userSelect: "none" }}
+          >
+            <div className="logo">
+              <Sparkles size={18} />
+            </div>
+            <span>SDEPrepAI Interviewer</span>
           </div>
-          <span>SDEPrepAI Interviewer</span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
@@ -1825,18 +1947,18 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
                 background: "transparent",
                 border: "1px solid var(--border-color, #2b354d)",
                 color: "inherit",
-                padding: "6px 12px",
+                padding: "6px 10px",
                 borderRadius: "8px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
-                fontSize: "13px",
+                gap: "5px",
+                fontSize: "12.5px",
                 fontWeight: 600
               }}
             >
-              {theme === "light" ? <Moon size={15} style={{ color: "#6366f1" }} /> : <Sun size={15} style={{ color: "#fbbf24" }} />}
-              <span>{theme === "light" ? "Dark" : "Light"}</span>
+              {theme === "light" ? <Moon size={14} style={{ color: "#6366f1" }} /> : <Sun size={14} style={{ color: "#fbbf24" }} />}
+              <span style={{ display: "inline-block" }}>{theme === "light" ? "Dark" : "Light"}</span>
             </button>
           )}
 
@@ -1853,7 +1975,8 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
               borderRadius: "6px",
               cursor: "pointer",
               fontWeight: 600,
-              fontSize: "13px"
+              fontSize: "12.5px",
+              whiteSpace: "nowrap"
             }}
           >
             Logout
@@ -1861,6 +1984,7 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
         </div>
       </header>
 
+      {/* Desktop Shell Body */}
       <div className="shell-body">
         <nav className="sidebar">
           {navItems.map(i => (
@@ -1876,6 +2000,27 @@ function AppShell({ active, onNav, candidateName, candidateEmail, onLogout, them
 
         <main className="shell-content">{children}</main>
       </div>
+
+      {/* Mobile Bottom Quick Navigation Bar */}
+      <nav className="mobile-bottom-nav">
+        {[
+          { key: "dashboard", label: "Dashboard", icon: "🏠" },
+          { key: "setup", label: "Practice", icon: "🎯" },
+          { key: "explore", label: "Explore", icon: "📚" },
+          { key: "analytics", label: "Analytics", icon: "📈" },
+          { key: "settings", label: "Settings", icon: "⚙️" }
+        ].map(item => (
+          <button
+            key={item.key}
+            type="button"
+            className={`mobile-bottom-btn ${active === item.key ? "active" : ""}`}
+            onClick={() => handleNav(item.key)}
+          >
+            <span style={{ fontSize: "16px" }}>{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

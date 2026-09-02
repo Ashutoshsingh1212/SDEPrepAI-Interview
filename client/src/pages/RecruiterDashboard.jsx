@@ -44,7 +44,8 @@ import {
   AlertTriangle,
   TrendingUp,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Menu
 } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "https://sdeprepai.onrender.com";
@@ -430,36 +431,175 @@ export default function RecruiterDashboard({ onBack, user, theme = "dark", onTog
     ? Math.round(scoresArray.reduce((a, b) => a + b, 0) / scoresArray.length)
     : 0;
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { key: "overview", label: "Dashboard", icon: "🏠" },
+    { key: "candidates", label: "Invited Students", icon: "👥", badge: candidates.length },
+    { key: "builder", label: "Create Interview", icon: "🎯" },
+    { key: "settings", label: "Settings", icon: "⚙️" },
+  ];
+
+  const handleTabClick = (key) => {
+    setMobileMenuOpen(false);
+    if (key === "builder") {
+      setCreated(null);
+      setStep(0);
+    }
+    setActiveTab(key);
+  };
+
   return (
     <div className="app-shell recruiter-workspace">
+      {/* Mobile Backdrop */}
+      <div
+        className={`mobile-nav-backdrop ${mobileMenuOpen ? "open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Navigation Drawer */}
+      <aside className={`mobile-nav-drawer ${mobileMenuOpen ? "open" : ""}`}>
+        <div className="mobile-drawer-header">
+          <div className="brand" onClick={() => handleTabClick("overview")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="logo">
+              <Sparkles size={18} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 800, fontSize: "15px" }}>SDEPrepAI</span>
+              <small style={{ fontSize: "9.5px", letterSpacing: "1px", color: "#8d9cff", textTransform: "uppercase", fontWeight: 700 }}>Recruiter Studio</small>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            className="mobile-drawer-close"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <nav className="mobile-drawer-links">
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`nav-item ${activeTab === item.key ? "active" : ""}`}
+              onClick={() => handleTabClick(item.key)}
+              style={{ width: "100%", justifyContent: "space-between", padding: "12px 14px" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "18px" }}>{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+              {item.badge > 0 && (
+                <span className="recruiter-tab-badge">{item.badge}</span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        <div className="mobile-drawer-user">
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "#111520", borderRadius: "10px", border: "1px solid #1f273b" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#6366f1", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13 }}>
+              {(profile.name || user?.name || "R").charAt(0).toUpperCase()}
+            </div>
+            <div style={{ overflow: "hidden", flex: 1 }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {profile.name || user?.name || "Recruiter"}
+              </div>
+              <div style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {profile.email || user?.email || "recruiter@sdeprepai.com"}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                style={{
+                  flex: 1,
+                  background: "#141926",
+                  border: "1px solid #28334a",
+                  color: "inherit",
+                  padding: "9px 12px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  fontSize: "12px",
+                  fontWeight: 600
+                }}
+              >
+                {theme === "light" ? <Moon size={14} style={{ color: "#6366f1" }} /> : <Sun size={14} style={{ color: "#fbbf24" }} />}
+                <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => { setMobileMenuOpen(false); onBack(); }}
+              style={{
+                background: "rgba(239, 68, 68, 0.15)",
+                color: "#f87171",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                padding: "9px 14px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: "12px"
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </aside>
+
       {/* =========================================================
           TOP HEADER
       ========================================================= */}
       <header className="shell-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div
-          className="brand"
-          onClick={() => setActiveTab("overview")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setActiveTab("overview");
-            }
-          }}
-          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", userSelect: "none" }}
-          title="Recruiter Workspace Home"
-        >
-          <div className="logo">
-            <Sparkles size={18} />
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontWeight: 800, fontSize: "16px" }}>SDEPrepAI</span>
-            <small style={{ fontSize: "10px", letterSpacing: "1px", color: "#8d9cff", textTransform: "uppercase", fontWeight: 700 }}>Recruiter Studio</small>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Mobile hamburger menu toggle */}
+          <button
+            type="button"
+            className="mobile-nav-toggle-btn"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open Recruiter Menu"
+            title="Open Recruiter Menu"
+          >
+            <Menu size={20} />
+          </button>
+
+          <div
+            className="brand"
+            onClick={() => handleTabClick("overview")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleTabClick("overview");
+              }
+            }}
+            style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", userSelect: "none" }}
+            title="Recruiter Workspace Home"
+          >
+            <div className="logo">
+              <Sparkles size={18} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 800, fontSize: "16px" }}>SDEPrepAI</span>
+              <small style={{ fontSize: "10px", letterSpacing: "1px", color: "#8d9cff", textTransform: "uppercase", fontWeight: 700 }}>Recruiter Studio</small>
+            </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
@@ -468,22 +608,22 @@ export default function RecruiterDashboard({ onBack, user, theme = "dark", onTog
                 background: "transparent",
                 border: "1px solid var(--border-color, #2b354d)",
                 color: "inherit",
-                padding: "6px 12px",
+                padding: "6px 10px",
                 borderRadius: "8px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
-                fontSize: "13px",
+                gap: "5px",
+                fontSize: "12.5px",
                 fontWeight: 600,
               }}
             >
-              {theme === "light" ? <Moon size={15} style={{ color: "#6366f1" }} /> : <Sun size={15} style={{ color: "#fbbf24" }} />}
-              <span>{theme === "light" ? "Dark" : "Light"}</span>
+              {theme === "light" ? <Moon size={14} style={{ color: "#6366f1" }} /> : <Sun size={14} style={{ color: "#fbbf24" }} />}
+              <span style={{ display: "inline-block" }}>{theme === "light" ? "Dark" : "Light"}</span>
             </button>
           )}
 
-          <div className="user-chip" style={{ background: "rgba(17,20,27,0.7)", padding: "6px 12px", borderRadius: "8px", border: "1px solid #242936" }}>
+          <div className="user-chip" style={{ background: "rgba(17,20,27,0.7)", padding: "6px 10px", borderRadius: "8px", border: "1px solid #242936" }}>
             👔 {profile.name || user?.name || "Recruiter"}
           </div>
 
@@ -492,7 +632,7 @@ export default function RecruiterDashboard({ onBack, user, theme = "dark", onTog
             onClick={onBack}
             className="action-btn-sm danger"
             title="Logout / Exit Recruiter Workspace"
-            style={{ padding: "8px 12px", borderRadius: "8px", fontWeight: 700 }}
+            style={{ padding: "7px 12px", borderRadius: "8px", fontWeight: 700 }}
           >
             <LogOut size={14} />
             <span>Logout</span>
@@ -505,23 +645,12 @@ export default function RecruiterDashboard({ onBack, user, theme = "dark", onTog
       ========================================================= */}
       <div className="shell-body">
         <nav className="sidebar">
-          {[
-            { key: "overview", label: "Dashboard", icon: "🏠" },
-            { key: "candidates", label: "Invited Students", icon: "👥", badge: candidates.length },
-            { key: "builder", label: "Create Interview", icon: "🎯" },
-            { key: "settings", label: "Settings", icon: "⚙️" },
-          ].map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.key}
               type="button"
               className={`nav-item ${activeTab === item.key ? "active" : ""}`}
-              onClick={() => {
-                if (item.key === "builder") {
-                  setCreated(null);
-                  setStep(0);
-                }
-                setActiveTab(item.key);
-              }}
+              onClick={() => handleTabClick(item.key)}
             >
               <span>{item.icon}</span>
               <span style={{ flex: 1, textAlign: "left" }}>{item.label}</span>
